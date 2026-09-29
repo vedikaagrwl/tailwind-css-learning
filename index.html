@@ -1,0 +1,1412 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>html,body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Tailwind Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Recursive:wght,CASL,MONO@300..900,0..1,0..1&display=swap">
+<style>
+/* Layout: topic index left; workbench right = class switches (left) + device-scaled preview and live HTML (right). Same blue theme as Tag Finder. */
+:root{
+  --bg:#eef2f6; --panel:#ffffff; --ink:#15202d; --muted:#586577; --line:#d6dde6;
+  --accent:#1f5fbf; --accent-ink:#ffffff; --accent-soft:#e3edfb; --mark:#ffe27a; --warn:#b4361f; --warn-soft:#fbe9e5; --ok:#15803d; --ok-soft:#dcfce7;
+  --code-bg:#0f1b2b; --c-text:#e2e8f0; --c-tag:#7dd3fc; --c-attr:#fcd98a; --c-cls:#93c5fd; --c-new:#fde047; --c-dim:#7b8ba1; --c-sel:#93c5fd; --c-prop:#f9a8d4; --c-val:#a7f3d0;
+  --display:"Recursive",ui-rounded,"Segoe UI",sans-serif;
+  --body:"Atkinson Hyperlegible","Segoe UI",Arial,sans-serif;
+  --mono:"Recursive",ui-monospace,Consolas,"Courier New",monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0d131b; --panel:#141d28; --ink:#e4ebf3; --muted:#95a3b5; --line:#263345;
+  --accent:#6ea8ff; --accent-ink:#0b1320; --accent-soft:#1a2a42; --mark:#8a7419; --warn:#ff9a85; --warn-soft:#3a1f1a; --ok:#4ade80; --ok-soft:#12301f;
+  --code-bg:#09111b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d131b; --panel:#141d28; --ink:#e4ebf3; --muted:#95a3b5; --line:#263345;
+  --accent:#6ea8ff; --accent-ink:#0b1320; --accent-soft:#1a2a42; --mark:#8a7419; --warn:#ff9a85; --warn-soft:#3a1f1a; --ok:#4ade80; --ok-soft:#12301f;
+  --code-bg:#09111b; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5}
+button{font:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+code{font-family:var(--mono);font-variation-settings:"MONO" 1;background:var(--accent-soft);padding:1px 5px;border-radius:4px;font-size:.9em}
+
+.topbar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding-block:18px 14px;padding-inline:16px;max-width:1480px;margin:0 auto}
+.brand{font-family:var(--display);font-variation-settings:"CASL" 1;font-weight:800;font-size:1.6rem;margin:0;display:flex;align-items:center;gap:10px}
+.brand .wave{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:9px;background:var(--accent);color:var(--accent-ink);font-family:var(--mono);font-variation-settings:"MONO" 1;font-size:1rem}
+.topbar p{margin:0;color:var(--muted);flex:1 1 280px}
+
+.app{display:grid;grid-template-columns:290px minmax(0,1fr);gap:20px;max-width:1480px;margin:0 auto;padding-inline:16px;padding-block:0 40px}
+.side{position:sticky;top:env(safe-area-inset-top,0px);align-self:start;max-height:100vh;display:flex;flex-direction:column;gap:10px;padding-top:4px}
+.search{position:relative}
+.search input{width:100%;padding:12px 14px 12px 40px;border:1.5px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink);font:inherit}
+.search input:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px var(--accent-soft)}
+.search svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--muted)}
+.browse-btn{display:none}
+.topics{overflow:auto;padding-right:4px;padding-bottom:20px;flex:1}
+.group h3{font-family:var(--display);font-variation-settings:"CASL" 1;font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:14px 8px 6px;display:flex;justify-content:space-between}
+.topic{display:flex;justify-content:space-between;align-items:baseline;gap:8px;width:100%;text-align:left;padding:7px 10px;border:0;border-radius:8px;background:transparent;color:var(--ink);font-size:.95rem}
+.topic:hover{background:var(--accent-soft)}
+.topic[aria-current="true"]{background:var(--accent);color:var(--accent-ink)}
+.topic .t{font-family:var(--mono);font-variation-settings:"MONO" 1;font-size:.72rem;opacity:.7;white-space:nowrap}
+.special{background:var(--code-bg);color:var(--c-cls);font-weight:700;margin-bottom:6px}
+.special:hover{background:var(--code-bg);filter:brightness(1.25)}
+.special[aria-current="true"]{background:var(--accent);color:var(--accent-ink)}
+.empty{color:var(--muted);padding:10px}
+
+main{min-width:0}
+.head{margin-bottom:16px}
+.eyebrow{font-family:var(--display);font-variation-settings:"CASL" 1;font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);font-weight:700}
+.head h2{font-family:var(--display);font-variation-settings:"CASL" .6;font-weight:800;font-size:clamp(1.6rem,3.4vw,2.3rem);line-height:1.15;margin:4px 0 0;text-wrap:balance}
+.head h2 .iw{color:var(--muted);font-weight:500}
+.lead{color:var(--muted);margin:8px 0 0;max-width:72ch}
+.bench{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:20px;align-items:start}
+.col{display:flex;flex-direction:column;gap:16px;min-width:0}
+.sticky{position:sticky;top:calc(env(safe-area-inset-top,0px) + 10px)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;min-width:0}
+.step-h{display:flex;align-items:center;gap:10px;margin:0 0 10px;font-family:var(--display);font-variation-settings:"CASL" .4;font-size:1.05rem;font-weight:700;flex-wrap:wrap}
+.num{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--accent);color:var(--accent-ink);font-size:.9rem;flex:none}
+.step-h .right{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.chip{font-family:var(--mono);font-variation-settings:"MONO" 1;font-weight:700;font-size:.95rem;padding:3px 10px;border-radius:8px;background:var(--code-bg);color:var(--c-cls)}
+.why p{margin:0 0 8px}
+.why p:last-child{margin-bottom:0}
+
+.btn-s{border:1.5px solid var(--line);background:var(--panel);color:var(--ink);padding:5px 11px;border-radius:8px;font-size:.85rem}
+.btn-s:hover{border-color:var(--accent);color:var(--accent)}
+.btn-p{border:0;background:var(--accent);color:var(--accent-ink);padding:8px 15px;border-radius:8px;font-weight:700;font-size:.92rem}
+.btn-p:hover{filter:brightness(1.08)}
+.btn-p:disabled{opacity:.45;cursor:default;filter:none}
+.linkbtn{border:0;background:none;padding:0;color:var(--accent);font-weight:700;text-align:left}
+.linkbtn:hover{text-decoration:underline}
+
+.rows{display:flex;flex-direction:column;gap:6px;margin:0;padding:0;list-style:none}
+.row{display:grid;grid-template-columns:auto minmax(0,1fr);gap:3px 12px;align-items:center;padding:9px 10px;border:1.5px solid var(--line);border-radius:10px;cursor:pointer;transition:background .15s,border-color .15s}
+.row:hover{border-color:var(--accent)}
+.row.on{background:var(--accent-soft);border-color:var(--accent)}
+.row .cls{font-family:var(--mono);font-variation-settings:"MONO" 1;font-weight:700;font-size:.95rem;display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0}
+.row .on-el{font-weight:400;font-size:.75rem;color:var(--muted);font-family:var(--body)}
+.row .css{grid-column:2;font-family:var(--mono);font-variation-settings:"MONO" 1;font-size:.8rem;color:var(--muted)}
+.row .fx{grid-column:2;font-size:.88rem}
+.row:not(.on) .fx{color:var(--muted)}
+.row.on .fx::before{content:"✓ ";color:var(--accent);font-weight:700}
+.row:not(.on) .fx::before{content:"→ "}
+.sw{appearance:none;-webkit-appearance:none;width:38px;height:22px;border-radius:22px;background:var(--line);position:relative;cursor:pointer;margin:0;grid-row:span 3;transition:background .15s}
+.sw::before{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .15s}
+.sw:checked{background:var(--accent)}
+.sw:checked::before{transform:translateX(16px)}
+select.vsel{font:inherit;font-family:var(--mono);font-variation-settings:"MONO" 1;font-weight:700;font-size:.9rem;padding:2px 4px;border:1.5px solid var(--accent);border-radius:6px;background:var(--panel);color:var(--ink);max-width:100%}
+.progress{font-size:.86rem;color:var(--muted);margin:0 0 10px}
+.fixednote{font-size:.85rem;color:var(--muted);margin:0 0 10px;padding:8px 10px;border-radius:8px;background:var(--bg)}
+.fixednote code{background:transparent;padding:0}
+
+pre.code{margin:0;background:var(--code-bg);color:var(--c-text);border-radius:10px;padding:14px;font-size:.88rem;line-height:1.6;overflow-x:auto;font-family:var(--mono);font-variation-settings:"MONO" 1;white-space:pre}
+.k-tag{color:var(--c-tag)} .k-at{color:var(--c-attr)} .k-cls{color:var(--c-cls)} .k-dim{color:var(--c-dim)} .k-sel{color:var(--c-sel)} .k-prop{color:var(--c-prop)} .k-val{color:var(--c-val)}
+mark.k-new{background:var(--c-new);color:#1a1a1a;border-radius:3px;padding:0 2px}
+
+.browser{border:1.5px solid var(--line);border-radius:12px;overflow:hidden;background:var(--panel)}
+.bar{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1.5px solid var(--line);background:var(--bg);flex-wrap:wrap}
+.dots{display:flex;gap:5px}.dots i{width:10px;height:10px;border-radius:50%;background:var(--line);display:block}
+.url{flex:1;min-width:90px;font-family:var(--mono);font-variation-settings:"MONO" 1;font-size:.78rem;color:var(--muted);background:var(--panel);border-radius:6px;padding:3px 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.seg{display:flex;border:1.5px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:transparent;color:var(--muted);padding:3px 10px;font-size:.8rem}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.vp{position:relative;overflow:hidden;background:#e9edf2}
+.vp iframe{display:block;border:0;background:#fff;transform-origin:0 0}
+.devnote{margin:0;padding:8px 12px;font-size:.84rem;border-top:1.5px solid var(--line);color:var(--muted);display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.bp{font-family:var(--mono);font-variation-settings:"MONO" 1;font-size:.75rem;padding:1px 7px;border-radius:20px;background:var(--bg);color:var(--muted)}
+.bp.on{background:var(--accent);color:var(--accent-ink)}
+
+.tips{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
+.tips li{padding:9px 12px;border-radius:8px;background:var(--warn-soft);font-size:.93rem}
+.tips li b{color:var(--warn)}
+.xr-topics{display:flex;flex-wrap:wrap;gap:6px}
+.pager{display:flex;justify-content:space-between;gap:10px;margin-top:20px;flex-wrap:wrap}
+.pager button{border:1.5px solid var(--line);background:var(--panel);color:var(--ink);border-radius:10px;padding:10px 14px;text-align:left;max-width:48%;min-width:0}
+.pager button:hover{border-color:var(--accent)}
+.pager small{display:block;color:var(--muted);font-size:.78rem}
+
+/* cheat sheet */
+.cheat-search{width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink);font:inherit;margin-bottom:12px}
+.cheat-search:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px var(--accent-soft)}
+.tablewrap{overflow-x:auto}
+table.cheat{border-collapse:collapse;width:100%;font-size:.93rem}
+table.cheat th,table.cheat td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+table.cheat th{font-size:.76rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+table.cheat td.m{font-family:var(--mono);font-variation-settings:"MONO" 1;white-space:nowrap}
+table.cheat td.tw{color:var(--accent);font-weight:700}
+table.cheat tr.grp td{background:var(--bg);font-weight:700;font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+
+/* practice */
+.who{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:flex-end;margin-bottom:14px}
+.field{display:flex;flex-direction:column;gap:4px;flex:1 1 200px;min-width:0}
+.field label,.edl{font-weight:700;font-size:.9rem}
+.edl{display:block;margin:12px 0 6px}
+.field input{padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);font:inherit}
+.field input:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px var(--accent-soft)}
+.who .hint{flex-basis:100%;margin:0}
+.hint{font-size:.86rem;color:var(--muted);margin:8px 0 0}
+.settabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.settab{border:1.5px solid var(--line);background:var(--panel);color:var(--ink);border-radius:10px;padding:8px 14px;font-weight:700;display:flex;gap:8px;align-items:center}
+.settab[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.cnt{font-family:var(--mono);font-variation-settings:"MONO" 1;font-size:.8rem;color:var(--muted);font-weight:400;font-variant-numeric:tabular-nums}
+.cnt.full{color:var(--ok);font-weight:700}
+.chnav{display:flex;flex-wrap:wrap;gap:10px 18px;margin-bottom:14px}
+.chgrp{display:flex;flex-direction:column;gap:4px}
+.chg{font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700}
+.chnums{display:flex;gap:6px}
+.task ul{margin:6px 0 0;padding-left:20px}
+.task li{margin-bottom:3px}
+.pronote{margin:0 0 14px;padding:10px 14px;border-radius:10px;background:var(--mark);color:var(--ink)}
+.settab.pro{border-style:dashed}
+.chn{width:36px;height:36px;border-radius:50%;border:1.5px solid var(--line);background:var(--panel);color:var(--ink);font-weight:700}
+.chn.done{background:var(--ok);border-color:var(--ok);color:var(--panel)}
+.chn[aria-current="true"]{outline:3px solid var(--accent);outline-offset:2px}
+.ch-title{font-family:var(--display);font-variation-settings:"CASL" .5;font-size:1.3rem;margin:0 0 6px}
+.task{margin:0 0 8px;font-size:1.02rem}
+textarea.code{width:100%;min-height:190px;resize:vertical;background:var(--code-bg);color:var(--c-text);border:0;border-radius:10px;padding:14px;font-family:var(--mono);font-variation-settings:"MONO" 1;font-size:.92rem;line-height:1.55;white-space:pre;overflow:auto;tab-size:2}
+.pbtns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.hintbox{margin:10px 0 0;padding:10px 12px;border-radius:8px;background:var(--mark);color:var(--ink);font-size:.93rem}
+.fb{margin-top:10px;font-weight:700;border-radius:8px}
+.fb:empty{display:none}
+.fb.ok{color:var(--ok);background:var(--ok-soft);padding:10px 12px}
+.fb.bad{color:var(--warn);background:var(--warn-soft);padding:10px 12px}
+.fb.wait{color:var(--muted);background:var(--bg);padding:10px 12px}
+.blabel{font-size:.76rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:2px 8px;border-radius:6px;background:var(--accent);color:var(--accent-ink)}
+.blabel.goal{background:var(--ok);color:var(--panel)}
+.codecard{margin-top:20px}
+.pbar{height:10px;border-radius:10px;background:var(--line);overflow:hidden}
+.pbar i{display:block;height:100%;background:var(--ok);border-radius:10px}
+.codebox{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:12px}
+.codeval{font-family:var(--mono);font-variation-settings:"MONO" 1;font-weight:800;font-size:1.6rem;letter-spacing:.06em;padding:8px 14px;border:2px dashed var(--accent);border-radius:10px;user-select:all}
+
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:.9rem;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;max-width:calc(100% - 32px);z-index:5}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.offscreen{position:absolute;left:-12000px;top:0;border:0;height:900px}
+
+@media (max-width:1180px){.bench{grid-template-columns:minmax(0,1fr)}.sticky{position:static}}
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  .side{position:static;max-height:none}
+  .browse-btn{display:flex;justify-content:space-between;align-items:center;width:100%;border:1.5px solid var(--line);background:var(--panel);color:var(--ink);border-radius:10px;padding:10px 14px;font-weight:700}
+  .topics{display:none;max-height:60vh;border:1.5px solid var(--line);border-radius:10px;background:var(--panel);padding:6px}
+  .side.open .topics,.side.searching .topics{display:block}
+  .pager button{max-width:100%;flex:1 1 100%}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+.sidetoggle{margin-left:auto;display:inline-flex;align-items:center;gap:8px;border:1.5px solid var(--line);background:var(--panel);color:var(--ink);padding:7px 12px;border-radius:8px;font-size:.88rem;font-weight:700}
+.sidetoggle:hover{border-color:var(--accent);color:var(--accent)}
+.app.noside{grid-template-columns:minmax(0,1fr)}
+.app.noside .side{display:none}
+@media (max-width:860px){.sidetoggle{display:none}.app.noside .side{display:flex}}
+</style>
+</head>
+<body>
+
+
+<header class="topbar">
+  <h1 class="brand"><span class="wave">tw</span> Tailwind Lab</h1>
+  <p>Add Tailwind classes one at a time, see the CSS each one means, and watch the page change on phone, tablet and laptop.</p>
+
+  <button class="sidetoggle" id="sidetoggle" aria-controls="side" aria-expanded="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg><span>Hide topics</span></button>
+</header>
+
+<div class="app">
+  <aside class="side" id="side">
+    <div class="search">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input id="q" type="search" placeholder="Search: padding, flex, hover…" aria-label="Search topics">
+    </div>
+    <button class="browse-btn" id="browse" aria-expanded="false"><span>Browse all topics</span><span id="count"></span></button>
+    <nav class="topics" id="topics" aria-label="Topics"></nav>
+  </aside>
+  <main id="main"></main>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const TW_SRC='https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.3/dist/index.global.js';
+const DEV={phone:375,tablet:768,laptop:1024};
+
+const GROUPS=[
+ {id:'start',name:'Start here'},
+ {id:'text',name:'Text'},
+ {id:'space',name:'Spacing & size'},
+ {id:'color',name:'Colors, borders & shadows'},
+ {id:'flex',name:'Flexbox'},
+ {id:'grid',name:'Grid'},
+ {id:'pos',name:'Position'},
+ {id:'resp',name:'Responsive (phone → laptop)'},
+ {id:'states',name:'Hover & focus'},
+ {id:'comp',name:'Build CampusKart parts'}
+];
+
+/* row = [element key, class, CSS it means, what changes, options?]  options = [[class, css, what changes], …] */
+const FLEX3=`<div class="{{c}}">
+  <div class="{{x}}">1</div>
+  <div class="{{x}}">2</div>
+  <div class="{{x}}">3</div>
+</div>`;
+const BOXX='bg-blue-600 text-white font-bold px-5 py-3 rounded';
+const FRAME='border-2 border-dashed border-gray-400 p-2';
+
+const ITEMS=[
+/* ---------- START ---------- */
+{id:'how',g:'start',t:'How Tailwind works',goal:'style a button with Tailwind',
+why:`<p>In normal CSS you write rules in a separate file. In Tailwind you add small ready-made <b>classes</b> directly in the HTML.</p><p>Each class does <b>one job</b>, like one line of CSS. <code>bg-blue-600</code> = <code>background-color: blue</code>. Turn on the classes below one by one and watch the HTML and the button change.</p>`,
+html:`<button class="{{b}}">Add to cart</button>`,
+rows:[['b','bg-blue-600','background-color: #2563eb','Blue background'],['b','text-white','color: #fff','White text'],['b','px-5','padding-left: 20px; padding-right: 20px','Space on the left and right'],['b','py-2','padding-top: 8px; padding-bottom: 8px','Space on the top and bottom'],['b','rounded-lg','border-radius: 8px','Round corners'],['b','font-semibold','font-weight: 600','Text becomes semi-bold'],['b','shadow-md','box-shadow: 0 4px 6px …','Soft shadow below'],['b','hover:bg-blue-800','on hover → background-color: #1e40af','Darker blue when the mouse is over it']],
+tips:['A typo in a class name. Tailwind silently ignores classes it does not know, so nothing happens and there is no error.','Two classes that fight, like <code>text-left</code> and <code>text-center</code> on the same element.']},
+
+{id:'setup',g:'start',t:'Add Tailwind to a page',goal:'add Tailwind to my HTML page',
+why:`<p>For practice, one <code>&lt;script&gt;</code> line in the <code>head</code> is enough. After that, every Tailwind class works in that page.</p><p>Real projects install Tailwind with npm and a build tool (you will see this with React later). The classes are the same.</p><p>Tailwind removes the browser's default styles, so an <code>h1</code> looks like normal text until you add classes.</p>`,
+code:`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CampusKart</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"><\/script>
+</head>
+<body>
+  <h1 class="{{h}}">Tailwind is working!</h1>
+  <p>This h1 has no default size. Add classes to style it.</p>
+</body>
+</html>`,
+html:`<h1 class="{{h}}">Tailwind is working!</h1>
+<p>This h1 has no default size. Add classes to style it.</p>`,
+rows:[['h','text-4xl','font-size: 36px','Heading becomes big'],['h','font-bold','font-weight: 700','Heading becomes bold'],['h','text-blue-600','color: blue-600','Heading turns blue']],
+tips:['Forgetting the script line. The classes stay in the HTML but nothing is styled.','Expecting h1 to be big by default. Tailwind resets all default styles.']},
+
+/* ---------- TEXT ---------- */
+{id:'tsize',g:'text',t:'Text size',goal:'change the size of text',
+why:`<p><code>text-</code> + a size name sets the font size. From small to big: <code>xs sm base lg xl 2xl 3xl 4xl 5xl 6xl</code>. <code>text-base</code> is 16px, the normal size.</p>`,
+html:`<h1 class="{{h}}">CampusKart</h1>
+<p class="{{p}}">Stationery delivered to your hostel.</p>`,
+rows:[['h','text-4xl','font-size: 36px','Heading size',[['text-sm','font-size: 14px','Small'],['text-base','font-size: 16px','Normal size'],['text-xl','font-size: 20px','A little bigger'],['text-2xl','font-size: 24px','Bigger'],['text-4xl','font-size: 36px','Big heading'],['text-6xl','font-size: 60px','Very big']]],['p','text-lg','font-size: 18px','Paragraph size',[['text-xs','font-size: 12px','Very small'],['text-sm','font-size: 14px','Small'],['text-base','font-size: 16px','Normal'],['text-lg','font-size: 18px','Slightly bigger']]]],
+tips:['Writing <code>text-4</code>. Sizes use names: <code>text-4xl</code>.']},
+
+{id:'tweight',g:'text',t:'Bold & italic',goal:'make text bold or italic',
+why:`<p><code>font-</code> + a weight name sets how thick the text is: <code>light normal medium semibold bold extrabold</code>. <code>italic</code> slants it.</p>`,
+html:`<h2 class="{{h}}">Today's deals</h2>
+<p class="{{p}}">Prices valid till Sunday.</p>`,
+rows:[['h','text-3xl','font-size: 30px','Heading becomes big'],['h','font-bold','font-weight: 700','Pick a weight',[['font-light','font-weight: 300','Thin'],['font-normal','font-weight: 400','Normal'],['font-medium','font-weight: 500','A little thick'],['font-semibold','font-weight: 600','Semi-bold'],['font-bold','font-weight: 700','Bold'],['font-extrabold','font-weight: 800','Extra bold']]],['p','italic','font-style: italic','Paragraph becomes italic']],
+tips:['Using <code>bold</code>. The class is <code>font-bold</code>.']},
+
+{id:'tcolor',g:'text',t:'Text color & shades',goal:'change the color of text',
+why:`<p>Colors are written as <code>text-</code> + color name + <b>shade number</b>. Shades go from <code>50</code> (very light) to <code>950</code> (very dark). <code>500</code> is the middle.</p><p>Same color names work for backgrounds (<code>bg-</code>) and borders (<code>border-</code>).</p>`,
+html:`<h1 class="{{h}}">CampusKart</h1>
+<p class="{{p}}">Books, pens and bags for every student.</p>`,
+rows:[['h','text-4xl','font-size: 36px','Heading becomes big'],['h','text-blue-600','color: blue-600','Pick a color',[['text-blue-300','color: blue-300','Light blue'],['text-blue-600','color: blue-600','Medium blue'],['text-blue-900','color: blue-900','Dark blue'],['text-red-600','color: red-600','Red'],['text-green-600','color: green-600','Green'],['text-orange-500','color: orange-500','Orange']]],['p','text-gray-500','color: gray-500','Pick a gray',[['text-gray-400','color: gray-400','Light gray'],['text-gray-500','color: gray-500','Medium gray'],['text-gray-700','color: gray-700','Dark gray'],['text-black','color: #000','Black']]]],
+tips:['Writing <code>text-blue</code> without a number. Most colors need a shade: <code>text-blue-600</code>. Only <code>black</code> and <code>white</code> have none.']},
+
+{id:'talign',g:'text',t:'Align, capitals & line spacing',goal:'align text and change letters and line spacing',
+why:`<p><code>text-left/center/right</code> aligns text. <code>uppercase</code> changes letters. <code>tracking-</code> is the space between letters. <code>leading-</code> is the space between lines.</p>`,
+html:`<h2 class="{{h}}">welcome to campuskart</h2>
+<p class="{{p}}">We deliver books, pens, notebooks, bags and lab coats to every hostel on campus. Orders placed before 6 PM arrive the same day.</p>
+<a href="shop.html" class="{{a}}">Read more</a>`,
+rows:[['h','text-2xl','font-size: 24px','Heading becomes bigger'],['h','text-center','text-align: center','Pick alignment',[['text-left','text-align: left','Left'],['text-center','text-align: center','Center'],['text-right','text-align: right','Right']]],['h','uppercase','text-transform: uppercase','Pick letters',[['uppercase','text-transform: uppercase','ALL CAPITALS'],['capitalize','text-transform: capitalize','First Letter Capital'],['normal-case','text-transform: none','As typed']]],['h','tracking-wide','letter-spacing: 0.025em','Pick letter spacing',[['tracking-tight','letter-spacing: -0.025em','Letters closer'],['tracking-normal','letter-spacing: 0','Normal'],['tracking-wide','letter-spacing: 0.025em','A little apart'],['tracking-widest','letter-spacing: 0.1em','Far apart']]],['p','leading-relaxed','line-height: 1.625','Pick line spacing',[['leading-tight','line-height: 1.25','Lines close together'],['leading-normal','line-height: 1.5','Normal'],['leading-relaxed','line-height: 1.625','A bit more space'],['leading-loose','line-height: 2','Double spacing']]],['a','text-blue-600','color: blue-600','Link turns blue'],['a','underline','text-decoration: underline','Pick a line',[['underline','text-decoration: underline','Underline'],['no-underline','text-decoration: none','No line'],['line-through','text-decoration: line-through','Line through']]],['a','hover:text-blue-800','on hover → darker color','Darker when the mouse is over it']],
+tips:['Using <code>text-center</code> to center a box. It centers the text inside only.']},
+
+/* ---------- SPACING & SIZE ---------- */
+{id:'scale',g:'space',t:'The spacing scale',goal:'understand what p-4 or m-8 means',
+why:`<p>Tailwind numbers are steps of <b>4px</b>. <code>1</code> = 4px, <code>2</code> = 8px, <code>4</code> = 16px, <code>8</code> = 32px. So <code>p-4</code> = padding 16px.</p><p>The same numbers work for padding (<code>p-</code>), margin (<code>m-</code>), gap (<code>gap-</code>), width (<code>w-</code>) and height (<code>h-</code>).</p>`,
+html:`<div class="{{d}}">Free delivery above ₹499</div>`,fixed:{d:'bg-blue-100 text-blue-900 rounded'},
+rows:[['d','p-4','padding: 16px','Pick a padding',[['p-0','padding: 0','No space'],['p-1','padding: 4px','1 × 4 = 4px'],['p-2','padding: 8px','2 × 4 = 8px'],['p-4','padding: 16px','4 × 4 = 16px'],['p-6','padding: 24px','6 × 4 = 24px'],['p-8','padding: 32px','8 × 4 = 32px'],['p-12','padding: 48px','12 × 4 = 48px']]]],
+tips:['Thinking <code>p-4</code> means 4px. It means 4 × 4 = 16px.']},
+
+{id:'sides',g:'space',t:'Padding on some sides',goal:'add padding only on some sides',
+why:`<p><code>px-</code> = left and right. <code>py-</code> = top and bottom. <code>pt- pr- pb- pl-</code> = top, right, bottom, left. Buttons usually get a bigger <code>px</code> than <code>py</code>.</p>`,
+html:`<button class="{{b}}">Shop now</button>`,fixed:{b:'bg-blue-600 text-white rounded-lg'},
+rows:[['b','px-6','padding-left & right: 24px','Pick left/right space',[['px-2','padding-left & right: 8px','Narrow'],['px-6','padding-left & right: 24px','Medium'],['px-10','padding-left & right: 40px','Wide']]],['b','py-2','padding-top & bottom: 8px','Pick top/bottom space',[['py-1','padding-top & bottom: 4px','Thin'],['py-2','padding-top & bottom: 8px','Normal'],['py-4','padding-top & bottom: 16px','Tall']]]],
+tips:['Writing <code>p-x-6</code>. It is <code>px-6</code>.']},
+
+{id:'margin',g:'space',t:'Margin & centering a box',goal:'add space outside a box and center it',
+why:`<p><code>m-</code> is margin, the space <b>outside</b> the box. <code>my-</code> = top and bottom, <code>mx-</code> = left and right.</p><p><code>mx-auto</code> centers a box that has a width.</p>`,
+html:`<p>Text before the box</p>
+<div class="{{d}}">Box</div>
+<p>Text after the box</p>`,fixed:{d:'bg-amber-100 p-4 border-2 border-amber-500'},
+rows:[['d','my-8','margin-top & bottom: 32px','Pick outside space',[['my-0','margin-top & bottom: 0','No space outside'],['my-4','margin-top & bottom: 16px','Some space'],['my-8','margin-top & bottom: 32px','More space'],['my-16','margin-top & bottom: 64px','Lots of space']]],['d','w-64','width: 256px','Box gets a width'],['d','mx-auto','margin-left & right: auto','Box moves to the center']],
+tips:['<code>mx-auto</code> without a width. A full-width box is already "centered".']},
+
+{id:'width',g:'space',t:'Width & height',goal:'set the width and height of a box',
+why:`<p><code>w-</code> sets width. Numbers use the 4px scale (<code>w-64</code> = 256px). Fractions are percent (<code>w-1/2</code> = 50%). <code>w-full</code> = 100%.</p><p><code>max-w-</code> sets a limit, useful on laptops so text does not become too wide. Try Laptop and Phone.</p>`,
+html:`<div class="{{d}}">I am a box</div>`,fixed:{d:'bg-blue-600 text-white p-3 rounded'},
+rows:[['d','w-64','width: 256px','Pick a width',[['w-32','width: 128px','128px'],['w-64','width: 256px','256px'],['w-1/2','width: 50%','Half of the parent'],['w-full','width: 100%','Full width']]],['d','max-w-sm','max-width: 384px','Never wider than this',[['max-w-xs','max-width: 320px','Limit 320px'],['max-w-sm','max-width: 384px','Limit 384px'],['max-w-md','max-width: 448px','Limit 448px']]],['d','h-24','height: 96px','Pick a height',[['h-12','height: 48px','48px'],['h-24','height: 96px','96px'],['h-40','height: 160px','160px']]]],
+tips:['Writing <code>w-50%</code>. Use <code>w-1/2</code>.']},
+
+{id:'imgfit',g:'space',t:'Image size & round photo',goal:'resize an image or make a round profile photo',
+why:`<p>Give the image a width and height. <code>object-cover</code> fills that size without stretching. <code>rounded-full</code> makes it a circle.</p>`,
+html:`<img src="photo.jpg" alt="Profile photo" class="{{i}}">`,
+rows:[['i','w-32','width: 128px','Photo 128px wide'],['i','h-32','height: 128px','Same height: a square'],['i','object-cover','object-fit: cover','Fills the square without stretching'],['i','rounded-full','border-radius: 9999px','Square becomes a circle'],['i','border-4','border-width: 4px','Thick border'],['i','border-blue-500','border-color: blue-500','Border turns blue']],
+tips:['Giving different width and height and then <code>rounded-full</code>. You get an oval.']},
+
+/* ---------- COLORS ---------- */
+{id:'bg',g:'color',t:'Background colors',goal:'change the background color',
+why:`<p><code>bg-</code> + color + shade. Light backgrounds (50–200) need dark text. Dark backgrounds (600–900) need white text, or it becomes hard to read.</p>`,
+html:`<div class="{{d}}">
+  <h3 class="font-bold text-lg">Diwali sale</h3>
+  <p>Up to 40% off on bags.</p>
+</div>`,fixed:{d:'p-6 rounded-xl'},
+rows:[['d','bg-blue-100','background-color: blue-100','Pick a shade',[['bg-blue-50','background: blue-50','Almost white'],['bg-blue-100','background: blue-100','Very light'],['bg-blue-300','background: blue-300','Light'],['bg-blue-500','background: blue-500','Medium'],['bg-blue-700','background: blue-700','Dark'],['bg-blue-900','background: blue-900','Very dark']]],['d','text-blue-900','color: blue-900','Pick a text color',[['text-blue-900','color: blue-900','Dark text (for light backgrounds)'],['text-white','color: #fff','White text (for dark backgrounds)']]]],
+tips:['Light text on a light background. Always check that the text can be read.']},
+
+{id:'border',g:'color',t:'Borders & round corners',goal:'add a border and round the corners',
+why:`<p><code>border</code> adds a 1px border. <code>border-2</code>, <code>border-4</code> make it thicker. <code>border-</code> + color sets its color. <code>rounded-</code> rounds the corners.</p>`,
+html:`<div class="{{d}}">New arrival: steel bottle</div>`,fixed:{d:'p-4 w-72'},
+rows:[['d','border-2','border-width: 2px','Pick a thickness',[['border','border-width: 1px','Thin'],['border-2','border-width: 2px','Medium'],['border-4','border-width: 4px','Thick']]],['d','border-blue-500','border-color: blue-500','Pick a color',[['border-gray-300','border-color: gray-300','Light gray'],['border-blue-500','border-color: blue-500','Teal'],['border-red-500','border-color: red-500','Red']]],['d','border-dashed','border-style: dashed','Pick a style',[['border-solid','border-style: solid','Solid line'],['border-dashed','border-style: dashed','Dashes'],['border-dotted','border-style: dotted','Dots']]],['d','rounded-lg','border-radius: 8px','Pick corners',[['rounded-none','border-radius: 0','Sharp'],['rounded','border-radius: 4px','Slightly round'],['rounded-lg','border-radius: 8px','Round'],['rounded-2xl','border-radius: 16px','Very round'],['rounded-full','border-radius: 9999px','Pill shape']]]],
+tips:['Only writing <code>border-blue-500</code>. You also need a width class like <code>border</code>.']},
+
+{id:'shadow',g:'color',t:'Shadows',goal:'add a shadow under a card',
+why:`<p><code>shadow-</code> + size adds a soft shadow: <code>sm md lg xl 2xl</code>. Cards usually use <code>shadow-md</code>.</p>`,
+html:`<div class="{{d}}">
+  <h3 class="font-bold">School bag</h3>
+  <p class="text-green-600 font-bold">₹799</p>
+</div>`,fixed:{d:'bg-white p-6 rounded-xl w-64 m-4'},
+rows:[['d','shadow-md','box-shadow: medium','Pick a shadow',[['shadow-none','box-shadow: none','No shadow'],['shadow-sm','box-shadow: small','Small'],['shadow-md','box-shadow: medium','Medium'],['shadow-lg','box-shadow: large','Large'],['shadow-2xl','box-shadow: very large','Very large']]]],
+tips:['Too big shadows on every element. Keep them for cards and pop-ups.']},
+
+/* ---------- FLEXBOX ---------- */
+{id:'flex',g:'flex',t:'flex & direction',goal:'put boxes side by side with Tailwind',
+why:`<p><code>flex</code> on the <b>parent</b> = <code>display: flex</code>. Its children sit in a row.</p><p><code>flex-col</code> stacks them top to bottom. <code>flex-row</code> is the default row.</p>`,
+html:FLEX3,fixed:{c:FRAME,x:BOXX},
+rows:[['c','flex','display: flex','Pick a display',[['flex','display: flex','Boxes in a row'],['block','display: block','Each box on its own line']]],['c','flex-row','flex-direction: row','Pick a direction',[['flex-row','flex-direction: row','Left to right'],['flex-row-reverse','flex-direction: row-reverse','Right to left'],['flex-col','flex-direction: column','Top to bottom'],['flex-col-reverse','flex-direction: column-reverse','Bottom to top']]]],
+tips:['Putting <code>flex</code> on the children. It goes on the parent.']},
+
+{id:'justify',g:'flex',t:'justify-*',goal:'move flex items left, center or right',
+why:`<p><code>justify-</code> = <code>justify-content</code>. It moves the items along the row: start, center, end, or spread them out.</p>`,
+html:FLEX3,fixed:{c:FRAME+' flex',x:BOXX},
+rows:[['c','justify-between','justify-content: space-between','Pick a value',[['justify-start','justify-content: flex-start','All at the start'],['justify-center','justify-content: center','All in the middle'],['justify-end','justify-content: flex-end','All at the end'],['justify-between','justify-content: space-between','Edges touched, equal space between'],['justify-around','justify-content: space-around','Equal space around each'],['justify-evenly','justify-content: space-evenly','Exactly equal space']]]],
+tips:['Writing <code>justify-content-center</code>. In Tailwind it is <code>justify-center</code>.']},
+
+{id:'items',g:'flex',t:'items-*',goal:'move flex items up, down or to the middle',
+why:`<p><code>items-</code> = <code>align-items</code>. It moves items up-down in a row. The container needs height to see it.</p>`,
+html:`<div class="{{c}}">
+  <div class="{{x}}">1</div>
+  <div class="{{y}}">2</div>
+  <div class="{{x}}">3</div>
+</div>`,fixed:{c:FRAME+' flex gap-2',x:BOXX,y:BOXX+' text-3xl'},
+rows:[['c','h-44','height: 176px','Container becomes tall'],['c','items-center','align-items: center','Pick a value',[['items-stretch','align-items: stretch','Stretch to full height'],['items-start','align-items: flex-start','Top'],['items-center','align-items: center','Middle'],['items-end','align-items: flex-end','Bottom'],['items-baseline','align-items: baseline','Text on one line']]]],
+tips:['No height on the container. There is no room to move up or down.']},
+
+{id:'gapwrap',g:'flex',t:'gap & flex-wrap',goal:'add space between items and let them wrap',
+why:`<p><code>gap-</code> puts space between items (4px scale). <code>flex-wrap</code> lets extra items move to the next line.</p>`,
+html:`<div class="{{c}}">
+  <div class="{{x}}">1</div><div class="{{x}}">2</div>
+  <div class="{{x}}">3</div><div class="{{x}}">4</div>
+  <div class="{{x}}">5</div><div class="{{x}}">6</div>
+  <div class="{{x}}">7</div><div class="{{x}}">8</div>
+</div>`,fixed:{c:FRAME+' flex',x:BOXX+' w-28 shrink-0'},
+rows:[['c','gap-4','gap: 16px','Pick a gap',[['gap-0','gap: 0','No space'],['gap-2','gap: 8px','Small'],['gap-4','gap: 16px','Medium'],['gap-8','gap: 32px','Big']]],['c','flex-wrap','flex-wrap: wrap','Pick wrapping',[['flex-nowrap','flex-wrap: nowrap','One line only (boxes overflow)'],['flex-wrap','flex-wrap: wrap','Extra boxes go to the next line']]]],
+tips:['Using margin on every box. <code>gap</code> is simpler.']},
+
+{id:'grow',g:'flex',t:'flex-1 (fill the space)',goal:'make one item fill the empty space',
+why:`<p><code>flex-1</code> on a <b>child</b> makes it grow and fill all the empty space. Search bars in headers are built this way.</p>`,
+html:`<header class="{{h}}">
+  <span class="font-bold text-xl">CampusKart</span>
+  <input class="{{s}}" placeholder="Search for pens, books…">
+  <a href="cart.html">Cart</a>
+</header>`,fixed:{h:'bg-blue-900 text-white p-3 items-center gap-3',s:'bg-white text-black rounded px-3 py-2 min-w-0'},
+rows:[['h','flex','display: flex','Header becomes a row'],['s','flex-1','flex: 1 1 0%','Search box fills the empty space']],
+tips:['Putting <code>flex-1</code> on the header. It goes on the child that should grow.']},
+
+/* ---------- GRID ---------- */
+{id:'grid',g:'grid',t:'grid & grid-cols',goal:'make columns with Tailwind grid',
+why:`<p><code>grid</code> turns on grid. <code>grid-cols-3</code> = 3 equal columns. <code>gap-</code> adds space between cells.</p>`,
+html:`<div class="{{g}}">
+  <div class="{{x}}">1</div><div class="{{x}}">2</div><div class="{{x}}">3</div>
+  <div class="{{x}}">4</div><div class="{{x}}">5</div><div class="{{x}}">6</div>
+</div>`,fixed:{x:BOXX+' text-center'},
+rows:[['g','grid','display: grid','Grid turns on'],['g','grid-cols-3','grid-template-columns: repeat(3, 1fr)','Pick columns',[['grid-cols-1','repeat(1, 1fr)','1 column'],['grid-cols-2','repeat(2, 1fr)','2 columns'],['grid-cols-3','repeat(3, 1fr)','3 columns'],['grid-cols-4','repeat(4, 1fr)','4 columns']]],['g','gap-3','gap: 12px','Pick a gap',[['gap-0','gap: 0','No space'],['gap-3','gap: 12px','Some space'],['gap-6','gap: 24px','More space']]]],
+tips:['Writing <code>grid-columns-3</code>. It is <code>grid-cols-3</code>.']},
+
+{id:'span',g:'grid',t:'col-span (bigger item)',goal:'make one grid item wider or taller',
+why:`<p><code>col-span-2</code> on a child = it covers 2 columns. <code>row-span-2</code> = it covers 2 rows.</p>`,
+html:`<div class="grid grid-cols-3 gap-3">
+  <div class="{{f}}">1</div>
+  <div class="{{x}}">2</div><div class="{{x}}">3</div>
+  <div class="{{x}}">4</div><div class="{{x}}">5</div>
+</div>`,fixed:{x:BOXX+' text-center',f:'bg-pink-600 text-white font-bold px-5 py-3 rounded text-center'},
+rows:[['f','col-span-2','grid-column: span 2','Pick a span',[['col-span-1','grid-column: span 1','1 column'],['col-span-2','grid-column: span 2','2 columns wide'],['col-span-3','grid-column: span 3','Full row']]],['f','row-span-2','grid-row: span 2','Covers 2 rows']],
+tips:['Putting <code>col-span</code> on the grid parent. It goes on the child.']},
+
+/* ---------- POSITION ---------- */
+{id:'badge',g:'pos',t:'Badge on a corner',goal:'put a SALE badge on the corner of a card',
+why:`<p><code>relative</code> on the card and <code>absolute</code> on the badge. Then <code>top-2 right-2</code> places the badge 8px from the card's top-right corner.</p>`,
+html:`<div class="{{c}}">
+  <span class="{{b}}">SALE</span>
+  <img src="bag.jpg" alt="School bag" class="w-full rounded">
+  <h3 class="font-semibold mt-2">School bag</h3>
+</div>`,fixed:{c:'w-56 border rounded-xl p-3',b:'bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-full'},
+rows:[['c','relative','position: relative','Card becomes the reference box'],['b','absolute','position: absolute','Badge floats'],['b','top-2','top: 8px','8px from the top'],['b','right-2','right: 8px','8px from the right']],
+tips:['Forgetting <code>relative</code> on the card. The badge flies to the page corner.']},
+
+{id:'sticky',g:'pos',t:'Sticky header',goal:'keep the header on top while scrolling',
+why:`<p><code>sticky top-0</code> keeps the header stuck at the top when you scroll. Add <code>z-10</code> so it stays above other content. Scroll inside the preview.</p>`,
+html:`<header class="{{h}}">CampusKart</header>
+<div class="space-y-3 p-2">
+  <p>Pens</p><p>Notebooks</p><p>Bags</p><p>Lab coats</p><p>Calculators</p>
+  <p>Files</p><p>Markers</p><p>Rulers</p><p>Erasers</p><p>Staplers</p>
+  <p>Glue</p><p>Scissors</p><p>Bottles</p><p>Folders</p><p>Crayons</p>
+</div>`,fixed:{h:'bg-blue-900 text-white p-4 font-bold'},maxH:420,
+rows:[['h','sticky','position: sticky','Header will stick'],['h','top-0','top: 0','Sticks at the very top'],['h','z-10','z-index: 10','Stays above other content']],
+tips:['<code>sticky</code> without <code>top-0</code>. It does not stick.']},
+
+{id:'fixed',g:'pos',t:'Button fixed in the corner',goal:'keep a button in the corner of the screen',
+why:`<p><code>fixed bottom-4 right-4</code> keeps it 16px from the bottom-right corner of the screen, even while scrolling.</p>`,
+html:`<div class="space-y-3 p-2">
+  <p>Pens</p><p>Notebooks</p><p>Bags</p><p>Lab coats</p><p>Calculators</p>
+  <p>Files</p><p>Markers</p><p>Rulers</p><p>Erasers</p><p>Staplers</p>
+</div>
+<a href="help.html" class="{{b}}">Help</a>`,fixed:{b:'bg-green-600 text-white px-5 py-2 rounded-full font-bold'},maxH:380,
+rows:[['b','fixed','position: fixed','Button leaves the page flow'],['b','bottom-4','bottom: 16px','16px from the bottom'],['b','right-4','right: 16px','16px from the right'],['b','shadow-lg','box-shadow: large','Shadow so it stands out']],
+tips:['Fixed buttons covering the last line of the page. Add bottom padding to the page.']},
+
+/* ---------- RESPONSIVE ---------- */
+{id:'bp',g:'resp',t:'How sm: md: lg: work',goal:'change styles on bigger screens',
+why:`<p>Tailwind is <b>mobile-first</b>. A class with no prefix works on <b>all</b> screens. A prefix makes it work <b>from that width and bigger</b>:</p><p><code>sm:</code> ≥ 640px · <code>md:</code> ≥ 768px · <code>lg:</code> ≥ 1024px · <code>xl:</code> ≥ 1280px</p><p>Turn on all lines, then switch Phone / Tablet / Laptop above the preview.</p>`,
+html:`<h1 class="{{h}}">CampusKart</h1>
+<p>Resize me with the buttons above.</p>`,
+rows:[['h','font-bold','font-weight: 700','Bold on all screens'],['h','text-xl','font-size: 20px','Phones: 20px'],['h','md:text-3xl','@media (min-width: 768px) → 30px','Tablets and up: 30px'],['h','lg:text-5xl','@media (min-width: 1024px) → 48px','Laptops and up: 48px'],['h','text-red-600','color: red','Phones: red'],['h','md:text-blue-600','@media (min-width: 768px) → blue','Tablets and up: blue']],
+tips:['Thinking <code>sm:</code> means "small screens only". It means "640px and bigger". For phones, use the class with no prefix.']},
+
+{id:'rgrid',g:'resp',t:'Responsive product grid',goal:'show 1 column on phones and more on laptops',
+why:`<p><code>grid-cols-1</code> for phones, <code>sm:grid-cols-2</code> from 640px, <code>lg:grid-cols-3</code> from 1024px. This is how every shop page works. Switch devices to see it.</p>`,
+html:`<div class="{{g}}">
+  <div class="{{c}}"><img src="bag.jpg" alt="Bag" class="rounded"><p class="font-semibold mt-2">School bag · ₹799</p></div>
+  <div class="{{c}}"><img src="pen.jpg" alt="Pens" class="rounded"><p class="font-semibold mt-2">Gel pens · ₹60</p></div>
+  <div class="{{c}}"><img src="notebook.jpg" alt="Notebook" class="rounded"><p class="font-semibold mt-2">Notebook set · ₹180</p></div>
+  <div class="{{c}}"><img src="bottle.jpg" alt="Bottle" class="rounded"><p class="font-semibold mt-2">Steel bottle · ₹349</p></div>
+  <div class="{{c}}"><img src="calc.jpg" alt="Calculator" class="rounded"><p class="font-semibold mt-2">Calculator · ₹650</p></div>
+  <div class="{{c}}"><img src="coat.jpg" alt="Lab coat" class="rounded"><p class="font-semibold mt-2">Lab coat · ₹420</p></div>
+</div>`,fixed:{g:'gap-4',c:'border rounded-xl p-3 bg-white'},
+rows:[['g','grid','display: grid','Grid turns on'],['g','grid-cols-1','1 column','Phones: 1 column'],['g','sm:grid-cols-2','@media (min-width: 640px) → 2 columns','From 640px: 2 columns'],['g','lg:grid-cols-3','@media (min-width: 1024px) → 3 columns','From 1024px: 3 columns']],
+tips:['Writing only <code>lg:grid-cols-3</code>. Phones then get whatever the default is.']},
+
+{id:'rflex',g:'resp',t:'Stack on phone, row on laptop',goal:'stack things on phones and put them side by side on bigger screens',
+why:`<p><code>flex flex-col</code> stacks on phones. <code>md:flex-row</code> turns it into a row from 768px. Product pages do this with the photo and details.</p>`,
+html:`<div class="{{p}}">
+  <img src="bag.jpg" alt="Blue school bag" class="{{i}}">
+  <div>
+    <h3 class="text-2xl font-bold">School bag</h3>
+    <p class="text-green-600 font-bold text-xl">₹799</p>
+    <p class="text-gray-600">Waterproof, 3 pockets, fits a 15-inch laptop.</p>
+  </div>
+</div>`,fixed:{p:'border rounded-xl p-4',i:'rounded-lg'},
+rows:[['p','flex','display: flex','Flexbox on'],['p','flex-col','flex-direction: column','Phones: photo above details'],['p','md:flex-row','@media (min-width: 768px) → row','From 768px: photo beside details'],['p','gap-4','gap: 16px','Space between photo and details'],['i','w-full','width: 100%','Phones: photo full width'],['i','md:w-64','@media (min-width: 768px) → 256px','From 768px: photo 256px wide']],
+tips:['Writing <code>flex-row md:flex-col</code>. That is the wrong way round for mobile-first.']},
+
+{id:'rhide',g:'resp',t:'Hide on phones',goal:'hide something on phones and show it on bigger screens',
+why:`<p><code>hidden</code> = <code>display: none</code> on all screens. <code>md:block</code> shows it again from 768px. Sidebars and big menus do this.</p>`,
+html:`<div class="{{w}}">
+  <aside class="{{a}}">
+    <h3 class="font-bold">Filters</h3>
+    <p>Under ₹500</p><p>4★ &amp; above</p>
+  </aside>
+  <main class="flex-1 bg-white border rounded p-3">
+    <h3 class="font-bold">Products</h3>
+    <p>School bag, pens, notebooks…</p>
+  </main>
+</div>`,fixed:{w:'flex gap-4',a:'w-48 bg-blue-50 p-3 rounded'},
+rows:[['a','hidden','display: none','Sidebar hidden everywhere'],['a','md:block','@media (min-width: 768px) → display: block','Sidebar comes back from 768px']],
+tips:['Writing <code>md:hidden</code> when you mean the opposite. <code>md:hidden</code> hides it on bigger screens.']},
+
+/* ---------- STATES ---------- */
+{id:'hover',g:'states',t:'hover: and transition',goal:'change a button when the mouse is over it',
+why:`<p>Put <code>hover:</code> in front of any class. It works only while the mouse is over the element. <code>transition</code> + <code>duration-300</code> make the change smooth.</p><p>Move your mouse over the button.</p>`,
+html:`<button class="{{b}}">Add to cart</button>`,fixed:{b:'bg-blue-600 text-white px-5 py-2 rounded-lg m-4'},
+rows:[['b','hover:bg-blue-800','on hover → darker background','Darker on hover'],['b','hover:scale-110','on hover → transform: scale(1.1)','Grows on hover'],['b','transition','transition-property: all common properties','Changes become smooth'],['b','duration-300','transition-duration: 300ms','Pick a speed',[['duration-75','transition-duration: 75ms','Very fast'],['duration-300','transition-duration: 300ms','Normal'],['duration-700','transition-duration: 700ms','Slow']]],['b','active:scale-95','while clicking → scale(0.95)','Shrinks while you press it']],
+tips:['Writing <code>hover-bg-blue-800</code>. The prefix uses a colon: <code>hover:bg-blue-800</code>.']},
+
+{id:'lift',g:'states',t:'Card lifts on hover',goal:'make a card lift up on hover',
+why:`<p><code>hover:-translate-y-1</code> moves the card 4px up on hover. The minus sign means "up". Add a bigger shadow on hover to make it look lifted.</p>`,
+html:`<div class="flex gap-4 p-4">
+  <div class="{{c}}"><img src="bag.jpg" alt="Bag" class="rounded"><p class="font-semibold mt-2">School bag</p></div>
+  <div class="{{c}}"><img src="pen.jpg" alt="Pens" class="rounded"><p class="font-semibold mt-2">Gel pens</p></div>
+</div>`,fixed:{c:'w-44 bg-white border rounded-xl p-3 shadow'},
+rows:[['c','transition','transition-property: …','Changes will be smooth'],['c','duration-300','transition-duration: 300ms','Takes 0.3 seconds'],['c','hover:-translate-y-1','on hover → move 4px up','Lifts up on hover'],['c','hover:shadow-xl','on hover → big shadow','Bigger shadow on hover']],
+tips:['Forgetting the minus in <code>-translate-y-1</code>. Without it the card moves down.']},
+
+{id:'focus',g:'states',t:'focus: for inputs',goal:'highlight an input when the user clicks in it',
+why:`<p><code>focus:</code> works while the input is selected (clicked or tabbed into). Click in the box to see it.</p>`,
+html:`<label for="em" class="block font-semibold mb-1">Email</label>
+<input id="em" type="email" placeholder="you@college.edu" class="{{i}}">`,fixed:{i:'border-2 border-gray-300 rounded-lg px-3 py-2 w-72'},
+rows:[['i','focus:outline-none','on focus → outline: none','Removes the browser\'s default outline'],['i','focus:border-blue-500','on focus → border blue','Border turns blue when clicked'],['i','focus:ring-4','on focus → 4px ring','A soft glow appears'],['i','focus:ring-blue-100','on focus → ring color blue-100','Glow is light blue'],['i','placeholder:text-gray-400','placeholder color → gray-400','Hint text becomes lighter']],
+tips:['Removing the outline with <code>focus:outline-none</code> and adding nothing else. Keyboard users then cannot see where they are.']},
+
+/* ---------- COMPONENTS ---------- */
+{id:'c-nav',g:'comp',t:'Navbar',goal:'build the CampusKart navbar',
+why:`<p>A navbar is a flex row: logo on the left, links on the right, all centered up-down. Turn the classes on one by one.</p>`,
+html:`<nav class="{{n}}">
+  <a href="index.html" class="{{l}}">CampusKart</a>
+  <ul class="{{u}}">
+    <li><a href="shop.html" class="{{a}}">Shop</a></li>
+    <li><a href="orders.html" class="{{a}}">Orders</a></li>
+    <li><a href="cart.html" class="{{a}}">Cart</a></li>
+  </ul>
+</nav>`,
+rows:[['n','bg-blue-900','background: blue-900','Dark background'],['n','text-white','color: white','White text'],['n','px-6','padding-left & right: 24px','Space on the sides'],['n','py-4','padding-top & bottom: 16px','Taller bar'],['n','flex','display: flex','Logo and links in one row'],['n','justify-between','justify-content: space-between','Logo left, links right'],['n','items-center','align-items: center','Centered up-down'],['l','text-2xl','font-size: 24px','Bigger logo'],['l','font-bold','font-weight: 700','Bold logo'],['u','flex','display: flex','Links in a row'],['u','gap-6','gap: 24px','Space between links'],['a','hover:text-amber-300','on hover → amber','Link turns yellow on hover']],
+tips:['Forgetting <code>flex</code> on the <code>ul</code>. The links stay stacked.']},
+
+{id:'c-card',g:'comp',t:'Product card',goal:'build a CampusKart product card',
+why:`<p>A card is a box with padding, round corners and a shadow, holding an image, a name, a price and a button.</p>`,
+html:`<div class="{{c}}">
+  <img src="bag.jpg" alt="School bag" class="{{i}}">
+  <h3 class="{{h}}">School bag</h3>
+  <p class="{{p}}">₹799</p>
+  <button class="{{b}}">Add to cart</button>
+</div>`,
+rows:[['c','w-60','width: 240px','Card becomes narrow'],['c','bg-white','background: white','White card'],['c','rounded-xl','border-radius: 12px','Round corners'],['c','shadow-md','box-shadow: medium','Soft shadow'],['c','p-4','padding: 16px','Space inside'],['i','w-full','width: 100%','Image fits the card'],['i','rounded-lg','border-radius: 8px','Image corners round'],['h','font-semibold','font-weight: 600','Name semi-bold'],['h','mt-2','margin-top: 8px','Space above the name'],['p','text-green-600','color: green-600','Price turns green'],['p','font-bold','font-weight: 700','Price bold'],['b','w-full','width: 100%','Button full width'],['b','mt-3','margin-top: 12px','Space above the button'],['b','bg-blue-600','background: blue-600','Blue button'],['b','text-white','color: white','White text'],['b','py-2','padding-top & bottom: 8px','Taller button'],['b','rounded-lg','border-radius: 8px','Round button'],['b','hover:bg-blue-800','on hover → darker','Darker on hover']],
+tips:['Giving the image a fixed width bigger than the card. Use <code>w-full</code>.']},
+
+{id:'c-hero',g:'comp',t:'Sale banner',goal:'build a sale banner with a gradient',
+why:`<p>A gradient in Tailwind v4 is three classes: <code>bg-linear-to-r</code> (direction), <code>from-</code> (start color), <code>to-</code> (end color).</p><p>In older Tailwind v3 the direction class was <code>bg-gradient-to-r</code>.</p>`,
+html:`<section class="{{s}}">
+  <h1 class="{{h}}">Diwali Sale</h1>
+  <p>Up to 40% off on bags and stationery</p>
+  <a href="shop.html" class="{{a}}">Shop now</a>
+</section>`,
+rows:[['s','bg-linear-to-r','background-image: linear-gradient(to right, …)','Gradient direction: left to right'],['s','from-orange-500','start color: orange','Starts orange'],['s','to-pink-600','end color: pink','Ends pink'],['s','text-white','color: white','White text'],['s','p-10','padding: 40px','Lots of space inside'],['s','rounded-2xl','border-radius: 16px','Round corners'],['s','text-center','text-align: center','Everything centered'],['h','text-4xl','font-size: 36px','Big heading'],['h','font-extrabold','font-weight: 800','Extra bold'],['a','inline-block','display: inline-block','Link can take padding'],['a','mt-4','margin-top: 16px','Space above'],['a','bg-white','background: white','White button'],['a','text-pink-600','color: pink-600','Pink text'],['a','px-6','padding-left & right: 24px','Wider'],['a','py-2','padding-top & bottom: 8px','Taller'],['a','rounded-full','border-radius: 9999px','Pill shape'],['a','font-semibold','font-weight: 600','Semi-bold']],
+tips:['Writing <code>from-orange-500 to-pink-600</code> without a direction class. No gradient appears.']},
+
+{id:'c-form',g:'comp',t:'Sign-up form',goal:'build a clean sign-up form',
+why:`<p>Labels on their own line, full-width inputs with borders and a focus color, and a full-width button.</p>`,
+html:`<form class="{{f}}">
+  <label for="n" class="{{l}}">Name</label>
+  <input id="n" type="text" class="{{i}}">
+  <label for="e" class="{{l}}">Email</label>
+  <input id="e" type="email" class="{{i}}">
+  <button class="{{b}}">Sign up</button>
+</form>`,
+rows:[['f','max-w-sm','max-width: 384px','Form becomes narrower'],['f','space-y-2','margin between children: 8px','Space between the rows'],['l','block','display: block','Labels on their own line'],['l','text-sm','font-size: 14px','Smaller labels'],['l','font-medium','font-weight: 500','Slightly bold labels'],['i','w-full','width: 100%','Inputs full width'],['i','border','border-width: 1px','Border appears'],['i','border-gray-300','border-color: gray-300','Light gray border'],['i','rounded-lg','border-radius: 8px','Round corners'],['i','px-3','padding-left & right: 12px','Space inside'],['i','py-2','padding-top & bottom: 8px','Taller inputs'],['i','focus:border-blue-500','on focus → blue border','Blue border when clicked'],['i','focus:outline-none','on focus → no outline','No default outline'],['b','w-full','width: 100%','Full-width button'],['b','bg-blue-600','background: blue-600','Blue button'],['b','text-white','color: white','White text'],['b','py-2','padding-top & bottom: 8px','Taller button'],['b','rounded-lg','border-radius: 8px','Round button'],['b','mt-2','margin-top: 8px','Space above the button']],
+tips:['Inputs without <code>w-full</code> in a form. They stay small.']}
+];
+
+/* ---------- CSS → Tailwind cheat sheet ---------- */
+const CHEAT=[
+['Spacing'],
+['padding: 16px','p-4','number × 4px'],['padding-left & right: 24px','px-6',''],['padding-top & bottom: 8px','py-2',''],['padding-top: 8px','pt-2','pr / pb / pl for other sides'],['margin: 16px','m-4',''],['margin-top & bottom: 32px','my-8',''],['margin: 0 auto (center a box)','mx-auto','needs a width'],['gap: 16px','gap-4',''],['space between stacked children','space-y-4','adds margin between children'],
+['Size'],
+['width: 256px','w-64',''],['width: 100%','w-full',''],['width: 50%','w-1/2',''],['width: 100vw','w-screen',''],['height: 96px','h-24',''],['height: 100vh','h-screen',''],['min-height: 100vh','min-h-screen',''],['max-width: 384px','max-w-sm','xs / sm / md / lg / xl / 2xl…'],
+['Text'],
+['font-size: 12px','text-xs',''],['font-size: 14px','text-sm',''],['font-size: 16px','text-base',''],['font-size: 18px','text-lg',''],['font-size: 20px','text-xl',''],['font-size: 24px','text-2xl',''],['font-size: 30px','text-3xl',''],['font-size: 36px','text-4xl',''],['font-weight: 400','font-normal',''],['font-weight: 600','font-semibold',''],['font-weight: 700','font-bold',''],['font-style: italic','italic',''],['text-align: center','text-center','text-left / text-right'],['text-transform: uppercase','uppercase','lowercase / capitalize'],['text-decoration: none','no-underline','underline / line-through'],['line-height: 1.625','leading-relaxed','leading-tight / normal / loose'],['letter-spacing: 0.025em','tracking-wide',''],
+['Colors'],
+['color: white','text-white',''],['color: (a blue)','text-blue-600','shade 50 … 950'],['background-color: (a teal)','bg-teal-600',''],['background: transparent','bg-transparent',''],['opacity: 0.5','opacity-50',''],['background: linear-gradient(to right, A, B)','bg-linear-to-r from-A to-B','v3: bg-gradient-to-r'],
+['Borders & shadows'],
+['border: 1px solid','border',''],['border-width: 2px','border-2',''],['border-color: (gray)','border-gray-300',''],['border-bottom: 1px','border-b',''],['border-style: dashed','border-dashed',''],['border-radius: 8px','rounded-lg',''],['border-radius: 50% / pill','rounded-full',''],['box-shadow: (medium)','shadow-md','sm / lg / xl / 2xl'],
+['Display & flexbox'],
+['display: none','hidden',''],['display: block','block',''],['display: inline-block','inline-block',''],['display: flex','flex',''],['flex-direction: column','flex-col',''],['flex-wrap: wrap','flex-wrap',''],['justify-content: space-between','justify-between',''],['justify-content: center','justify-center',''],['align-items: center','items-center',''],['flex: 1','flex-1',''],['align-self: flex-end','self-end',''],['order: -1','-order-1','order-first'],
+['Grid'],
+['display: grid','grid',''],['grid-template-columns: repeat(3, 1fr)','grid-cols-3',''],['grid-column: span 2','col-span-2',''],['grid-row: span 2','row-span-2',''],['place-items: center','place-items-center',''],
+['Position'],
+['position: relative','relative',''],['position: absolute','absolute',''],['position: fixed','fixed',''],['position: sticky','sticky',''],['top: 0','top-0',''],['right: 8px','right-2',''],['bottom: 16px','bottom-4',''],['z-index: 10','z-10',''],['overflow-x: auto','overflow-x-auto',''],['object-fit: cover','object-cover',''],
+['Effects & states'],
+['transition: … 150ms','transition',''],['transition-duration: 300ms','duration-300',''],['transform: scale(1.05)','scale-105',''],['transform: translateY(-4px)','-translate-y-1',''],['transform: rotate(45deg)','rotate-45',''],['cursor: pointer','cursor-pointer',''],['.btn:hover { background: … }','hover:bg-…','any class after hover:'],['input:focus { border-color: … }','focus:border-…',''],['@media (min-width: 768px) { … }','md:…','sm 640 · md 768 · lg 1024 · xl 1280']
+];
+
+/* ---------- sample images ---------- */
+function svgImg(label,c1,c2,w,h){
+  const s=`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></linearGradient></defs><rect width="${w}" height="${h}" fill="url(#g)"/><text x="50%" y="52%" font-family="Arial" font-size="${Math.round(h/9)}" fill="white" text-anchor="middle" dominant-baseline="middle">${label}</text></svg>`;
+  return 'data:image/svg+xml,'+encodeURIComponent(s);
+}
+const ASSETS={'bag.jpg':svgImg('bag.jpg','#3b82f6','#1e3a8a',400,300),'photo.jpg':svgImg('photo.jpg','#f59e0b','#be123c',400,400),'pen.jpg':svgImg('pens','#0ea5e9','#0369a1',400,300),'notebook.jpg':svgImg('notebook','#f97316','#9a3412',400,300),'bottle.jpg':svgImg('bottle','#14b8a6','#115e59',400,300),'calc.jpg':svgImg('calculator','#64748b','#1e293b',400,300),'coat.jpg':svgImg('lab coat','#a78bfa','#5b21b6',400,300)};
+function withAssets(s){for(const k in ASSETS)s=s.split('"'+k+'"').join('"'+ASSETS[k]+'"');return s;}
+function docFor(html){return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><script src="${TW_SRC}"><\/script><style>body{padding:16px;font-family:system-ui,Arial,sans-serif;background:#f8fafc;color:#1e293b}</style></head><body>${withAssets(html)}</body></html>`;}
+</script>
+<script>
+/* ---------- state & helpers ---------- */
+const state={id:null,on:{},val:{},device:'laptop',last:null,pset:'TW1',pidx:0,pmsg:null};
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const byId=id=>ITEMS.find(i=>i.id===id);
+const onList=it=>state.on[it.id]||(state.on[it.id]=it.rows.map(()=>false));
+const valList=it=>state.val[it.id]||(state.val[it.id]={});
+function rowInfo(it,i){const [el,cls,css,fx,opts]=it.rows[i];const v=valList(it)[i]??cls;if(!opts)return {el,cls,css,fx,opts:null};const o=opts.find(x=>x[0]===v)||opts.find(x=>x[0]===cls)||opts[0];return {el,cls:o[0],css:o[1],fx:o[2],opts};}
+function classesFor(it,key){const fixed=(it.fixed&&it.fixed[key])||'';const on=onList(it);const add=it.rows.map((r,i)=>on[i]&&r[0]===key?rowInfo(it,i).cls:'').filter(Boolean);return (fixed+' '+add.join(' ')).trim();}
+function fill(it,tpl){return tpl.replace(/ class="\{\{(\w+)\}\}"/g,(m,k)=>{const c=classesFor(it,k);return c?` class="${c}"`:'';});}
+function hlHTML(src,newCls){
+  let s=src.replace(/(<\/?)([\w-]+)/g,'$1\u0001$2\u0002');
+  s=s.replace(/([\w:-]+)="([^"]*)"/g,(m,a,v)=>a==='class'?'\u0003class\u0004="'+v.split(/\s+/).filter(Boolean).map(c=>c===newCls?'\u0007'+c+'\u0008':'\u0005'+c+'\u0006').join(' ')+'"':'\u0003'+a+'\u0004="'+v+'"');
+  return esc(s).replace(/\u0001/g,'<span class="k-tag">').replace(/[\u0002\u0004\u0006]/g,'</span>').replace(/\u0003/g,'<span class="k-at">').replace(/\u0005/g,'<span class="k-cls">').replace(/\u0007/g,'<mark class="k-new">').replace(/\u0008/g,'</mark>');
+}
+let tt;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2200);}
+function copy(text,el,msg){
+  const fallback=()=>{try{const r=document.createRange();r.selectNodeContents(el);const s=getSelection();s.removeAllRanges();s.addRange(r);toast('Selected. Press Ctrl+C to copy.');}catch(e){}};
+  try{navigator.clipboard.writeText(text).then(()=>toast(msg),fallback);}catch(e){fallback();}
+}
+function hook(f){let d;try{d=f.contentDocument;}catch(e){return;}if(!d)return;
+  d.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('a');if(!a)return;e.preventDefault();toast('This link would open: '+(a.getAttribute('href')||''));});
+  d.addEventListener('submit',e=>{e.preventDefault();toast('Form submitted (demo only).');});}
+
+/* ---------- device-scaled preview ---------- */
+function devBar(){return `<div class="seg" role="group" aria-label="Screen size">${['phone','tablet','laptop'].map(d=>`<button data-dev="${d}" aria-pressed="${state.device===d}">${d[0].toUpperCase()+d.slice(1)}</button>`).join('')}</div>`;}
+function devNote(){const w=DEV[state.device];return `<span>${w}px wide ·</span>${[['sm',640],['md',768],['lg',1024],['xl',1280]].map(([n,px])=>`<span class="bp ${w>=px?'on':''}">${n}: ${w>=px?'on':'off'}</span>`).join('')}`;}
+function layoutFrame(f,vp,maxH){
+  if(!f||!vp)return;const W=DEV[state.device];const cw=vp.clientWidth||600;const sc=Math.min(1,cw/W);
+  f.style.width=W+'px';let h=220;try{const d=f.contentDocument;f.style.height='100px';h=d.documentElement.scrollHeight;}catch(e){}
+  h=Math.min(Math.max(h,180),maxH||900);f.style.height=h+'px';f.style.transform=`scale(${sc})`;f.style.marginLeft=Math.max(0,(cw-W*sc)/2)+'px';vp.style.height=Math.ceil(h*sc)+'px';
+}
+function bindDevices(after){document.querySelectorAll('[data-dev]').forEach(b=>b.onclick=()=>{state.device=b.dataset.dev;document.querySelectorAll('[data-dev]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.dev===state.device));document.querySelectorAll('.devnote').forEach(n=>n.innerHTML=devNote());after();});}
+
+/* ---------- sidebar ---------- */
+function renderTopics(filter){
+  const q=(filter||'').trim().toLowerCase();let html='';
+  if(!q){const done=allChallenges().filter(c=>PS.solved[c.id]).length;
+    html+=`<button class="topic special" data-id="practice" aria-current="${state.id==='practice'}"><span>Practice</span><span class="t">${done}/${allChallenges().length} done</span></button><button class="topic special" data-id="cheat" aria-current="${state.id==='cheat'}"><span>CSS → Tailwind</span><span class="t">lookup</span></button>`;}
+  GROUPS.forEach(g=>{
+    const items=ITEMS.filter(i=>i.g===g.id&&(!q||(i.t+' '+i.goal+' '+i.rows.map(r=>r[1]+' '+r[2]+' '+(r[4]||[]).map(o=>o[0]+' '+o[1]).join(' ')).join(' ')).toLowerCase().includes(q)));
+    if(!items.length)return;
+    html+=`<div class="group"><h3><span>${g.name}</span><span>${items.length}</span></h3>`+items.map(i=>`<button class="topic" data-id="${i.id}" aria-current="${i.id===state.id}"><span>${esc(i.t)}</span></button>`).join('')+'</div>';
+  });
+  $('#topics').innerHTML=html||`<p class="empty">No topic found for “${esc(q)}”. Try the CSS → Tailwind lookup.</p>`;
+  $('#count').textContent=ITEMS.length+' topics';$('#side').classList.toggle('searching',!!q);
+}
+$('#topics').addEventListener('click',e=>{const b=e.target.closest('.topic');if(b)open(b.dataset.id,true);});
+$('#q').addEventListener('input',e=>renderTopics(e.target.value));
+$('#browse').addEventListener('click',()=>{const s=$('#side');const o=!s.classList.contains('open');s.classList.toggle('open',o);$('#browse').setAttribute('aria-expanded',o);});
+function afterOpen(fromClick){renderTopics($('#q').value);if(fromClick){$('#side').classList.remove('open');$('#browse').setAttribute('aria-expanded','false');if(window.innerWidth<=860)$('#main').scrollIntoView({behavior:'smooth'});else window.scrollTo({top:0,behavior:'smooth'});}}
+
+/* ---------- topic view ---------- */
+function open(id,fromClick){
+  if(id==='practice'){openPractice(fromClick);return;}
+  if(id==='cheat'){openCheat(fromClick);return;}
+  const it=byId(id)||ITEMS[0];state.id=it.id;state.last=null;
+  try{history.replaceState(null,'','#'+it.id);}catch(e){}
+  const g=GROUPS.find(x=>x.id===it.g);const idx=ITEMS.indexOf(it);const prev=ITEMS[idx-1],next=ITEMS[idx+1];
+  const fixedList=it.fixed?Object.values(it.fixed).join(' '):'';
+  const prac=allChallenges().filter(c=>c.topic===it.id);
+  $('#main').innerHTML=`
+  <div class="head"><div class="eyebrow">${g.name}</div><h2><span class="iw">I want to</span> ${esc(it.goal)}</h2></div>
+  <div class="bench">
+    <div class="col">
+      <section class="card"><div class="chips">${it.rows.map((r,i)=>`<span class="chip">${esc(rowInfo(it,i).cls)}</span>`).filter((v,i,a)=>a.indexOf(v)===i).join('')}</div><div class="why">${it.why}</div></section>
+      <section class="card"><h3 class="step-h"><span class="num">1</span>Add classes one at a time<span class="right"><button class="btn-s" id="none">Start over</button><button class="btn-s" id="all">All on</button></span></h3>
+        ${fixedList?`<p class="fixednote">Already added so you can see it: <code>${esc(fixedList)}</code></p>`:''}
+        <p class="progress" id="progress"></p>
+        <ul class="rows" id="rows"></ul>
+        <div class="pbtns"><button class="btn-p" id="next">Add next class</button></div>
+      </section>
+      ${prac.length?`<section class="card"><h3 class="step-h">Practice this</h3><div class="xr-topics">${prac.map(c=>`<button class="btn-s" data-practice="${c.id}">${PS.solved[c.id]?'✓ ':''}${esc(c.t)} →</button>`).join('')}</div></section>`:''}
+      ${it.tips?`<section class="card"><h3 class="step-h">Watch out</h3><ul class="tips">${it.tips.map(t=>`<li><b>Mistake:</b> ${t}</li>`).join('')}</ul></section>`:''}
+    </div>
+    <div class="col sticky">
+      <section class="card" style="padding:0;border:0;background:transparent">
+        <h3 class="step-h"><span class="num">2</span>See the result</h3>
+        <div class="browser"><div class="bar"><div class="dots"><i></i><i></i><i></i></div><div class="url">index.html</div>${devBar()}</div>
+          <div class="vp" id="vp"><iframe id="pv" sandbox="allow-scripts allow-same-origin" title="Result preview"></iframe></div>
+          <p class="devnote">${devNote()}</p></div>
+      </section>
+      <section class="card"><h3 class="step-h"><span class="num">3</span>Your HTML<span class="right"><button class="btn-s" id="copy">Copy</button></span></h3>
+        <pre class="code" id="code"></pre>
+        <p class="hint">New class is <mark class="k-new">highlighted</mark>. In Tailwind, all the styling lives in the class attribute.</p></section>
+    </div>
+  </div>
+  <div class="pager">${prev?`<button data-go="${prev.id}"><small>← Previous</small>${esc(prev.t)}</button>`:'<span></span>'}${next?`<button data-go="${next.id}" style="text-align:right"><small>Next →</small>${esc(next.t)}</button>`:''}</div>`;
+  renderRows(it);
+  const f=$('#pv');f.onload=()=>{hook(f);setTimeout(()=>layoutFrame(f,$('#vp'),it.maxH),120);setTimeout(()=>layoutFrame(f,$('#vp'),it.maxH),500);};
+  f.srcdoc=docFor(fill(it,it.html));
+  updateCode(it);
+  bindDevices(()=>layoutFrame($('#pv'),$('#vp'),it.maxH));
+  const on=onList(it);
+  $('#rows').addEventListener('change',e=>{const i=+e.target.dataset.i;
+    if(e.target.classList.contains('vsel')){valList(it)[i]=e.target.value;on[i]=true;const r=rowInfo(it,i);const li=e.target.closest('.row');li.querySelector('.css').textContent=r.css;li.querySelector('.fx').textContent=r.fx;state.last=r.cls;}
+    else{on[i]=e.target.checked;state.last=on[i]?rowInfo(it,i).cls:null;}
+    changed(it);});
+  $('#next').onclick=()=>{const i=on.indexOf(false);if(i>-1){on[i]=true;state.last=rowInfo(it,i).cls;changed(it);const r=document.getElementById('r-'+i);r&&r.closest('.row').scrollIntoView({block:'nearest',behavior:'smooth'});}};
+  $('#all').onclick=()=>{on.fill(true);state.last=null;changed(it);};
+  $('#none').onclick=()=>{on.fill(false);state.last=null;changed(it);};
+  $('#copy').onclick=()=>copy(fill(it,it.code||it.html),$('#code'),'HTML copied');
+  document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>open(b.dataset.go,true));
+  document.querySelectorAll('[data-practice]').forEach(b=>b.onclick=()=>{const c=b.dataset.practice;const s=PRACTICE.find(s=>s.items.some(x=>x.id===c));state.pset=s.key;state.pidx=s.items.findIndex(x=>x.id===c);state.pmsg=null;open('practice',true);});
+  afterOpen(fromClick);
+}
+function renderRows(it){
+  const on=onList(it);
+  $('#rows').innerHTML=it.rows.map((r,i)=>{const x=rowInfo(it,i);
+    const clsHTML=x.opts?`<select class="vsel" id="v-${i}" data-i="${i}" aria-label="Choose a class">${x.opts.map(o=>`<option value="${esc(o[0])}" ${o[0]===x.cls?'selected':''}>${esc(o[0])}</option>`).join('')}</select>`:esc(x.cls);
+    return `<li><label class="row ${on[i]?'on':''}" for="r-${i}"><input type="checkbox" class="sw" id="r-${i}" data-i="${i}" ${on[i]?'checked':''}><span class="cls">${clsHTML}<span class="on-el">on &lt;${esc(elName(it,r[0]))}&gt;</span></span><span class="css">${esc(x.css)}</span><span class="fx">${esc(x.fx)}</span></label></li>`;}).join('');
+  updateProgress(it);
+}
+function elName(it,key){const m=(it.html.match(new RegExp('<([\\w-]+)[^>]*class="\\{\\{'+key+'\\}\\}"'))||[])[1];return m||key;}
+function updateProgress(it){const on=onList(it);const n=on.filter(Boolean).length;
+  $('#progress').textContent=(n===0?'No classes added yet. Turn them on one by one.':`${n} of ${on.length} classes added.`)+(it.rows.some(r=>r[4])?' Rows with a dropdown let you try other values.':'');
+  $('#next').disabled=n===on.length;
+  document.querySelectorAll('#rows .row').forEach((r,i)=>r.classList.toggle('on',on[i]));
+  document.querySelectorAll('#rows .sw').forEach((s,i)=>s.checked=on[i]);}
+function updateCode(it){$('#code').innerHTML=hlHTML(fill(it,it.code||it.html),state.last);}
+function changed(it){
+  updateProgress(it);updateCode(it);
+  const f=$('#pv');let d;try{d=f.contentDocument;}catch(e){}
+  if(d&&d.body){d.body.innerHTML=withAssets(fill(it,it.html));setTimeout(()=>layoutFrame(f,$('#vp'),it.maxH),60);d.querySelectorAll('img').forEach(i=>i.addEventListener('load',()=>layoutFrame(f,$('#vp'),it.maxH)));}
+  else f.srcdoc=docFor(fill(it,it.html));
+}
+
+/* ---------- CSS → Tailwind ---------- */
+function openCheat(fromClick){
+  state.id='cheat';try{history.replaceState(null,'','#cheat');}catch(e){}
+  $('#main').innerHTML=`<div class="head"><div class="eyebrow">Lookup</div><h2>CSS → Tailwind</h2><p class="lead">You already know CSS. Type the CSS you want (like <code>padding</code> or <code>center</code>) or a Tailwind class (like <code>gap-4</code>) to find the match.</p></div>
+  <section class="card"><input class="cheat-search" id="cq" type="search" placeholder="Type CSS or a class: padding, flex, hover, 768…" aria-label="Search the lookup table"><div class="tablewrap"><table class="cheat"><thead><tr><th>CSS</th><th>Tailwind class</th><th>Note</th></tr></thead><tbody id="cb"></tbody></table></div></section>`;
+  const draw=q=>{q=q.trim().toLowerCase();let grp=null,out='';
+    CHEAT.forEach(r=>{if(r.length===1){grp=r[0];return;}if(q&&!(r.join(' ')+' '+grp).toLowerCase().includes(q))return;
+      if(grp){out+=`<tr class="grp"><td colspan="3">${esc(grp)}</td></tr>`;grp=null;}
+      out+=`<tr><td class="m">${esc(r[0])}</td><td class="m tw">${esc(r[1])}</td><td>${esc(r[2])}</td></tr>`;});
+    $('#cb').innerHTML=out||`<tr><td colspan="3">Nothing found for “${esc(q)}”. Try a shorter word.</td></tr>`;};
+  draw('');$('#cq').addEventListener('input',e=>draw(e.target.value));
+  afterOpen(fromClick);
+}
+</script>
+<script>
+/* ---------- practice ---------- */
+const HS='<!-- Add Tailwind classes inside class="" -->\n';
+const PCARD=(img,name,price)=>`  <div class="bg-white rounded-xl shadow p-3">
+    <img src="${img}" alt="${name}" class="w-full h-32 object-cover rounded-lg">
+    <h3 class="font-bold mt-2">${name}</h3>
+    <p class="text-green-700 font-bold">${price}</p>
+  </div>`;
+const FOUR=[PCARD('calc.jpg','Calculator','₹650'),PCARD('bottle.jpg','Steel bottle','₹349'),PCARD('notebook.jpg','Notebook set','₹180'),PCARD('coat.jpg','Lab coat','₹420')].join('\n');
+const NAV_SOL=`<nav class="bg-gray-900 text-white px-6 py-4 flex justify-between items-center">
+  <a href="#" class="text-2xl font-bold">Campus<span class="text-orange-400">Kart</span></a>
+  <div class="flex gap-6">
+    <a href="#" class="hover:text-orange-400">Shop</a>
+    <a href="#" class="hover:text-orange-400">Orders</a>
+    <a href="#" class="hover:text-orange-400">Cart (0)</a>
+  </div>
+</nav>`;
+const BAN_SOL=`<section class="flex flex-col md:flex-row items-center md:justify-between text-center md:text-left gap-8 px-6 py-16 bg-green-800 text-white">
+  <div>
+    <h1 class="">Exam Season Sale</h1>
+    <p class="">Calculators and stationery up to 40% off</p>
+  </div>
+  <img src="calc.jpg" alt="Calculator" class="">
+</section>`;
+const hasCls=(el,re)=>el&&re.test(' '+(el.getAttribute('class')||'')+' ');
+const shadowOn=s=>s.boxShadow&&s.boxShadow!=='none'&&!/^(rgba\(0, 0, 0, 0\) 0px 0px 0px 0px(, )?)+$/.test(s.boxShadow);
+
+const PRACTICE=[
+/* ======================= CLASS 1 ======================= */
+{key:'TW1',name:'Class 1 · Core utilities',items:[
+ {id:'k1-pad',grp:'Spacing',t:'Roomy notice box',topic:'scale',
+  task:'Give the notice box <b>16px of space inside</b> on every side, and <b>32px of space above it</b> (outside the box).',
+  start:`<div class="bg-orange-100">Free delivery on orders above ₹499</div>`,
+  sol:`<div class="bg-orange-100 p-4 mt-8">Free delivery on orders above ₹499</div>`,
+  hint:'Space inside is padding, space outside is margin. Remember: 1 Tailwind unit = 4px.',hint2:'p-4 mt-8',
+  checks:h=>{const s=h.cs(h.q('div'));return [[['Top','Right','Bottom','Left'].every(k=>s['padding'+k]==='16px'),'The space inside should be 16px on all four sides.'],[s.marginTop==='32px','There should be 32px of space above the box.']];}},
+ {id:'k1-center',grp:'Spacing',t:'Centred card with a button',topic:'margin',
+  task:'The button needs <b>24px of space on the left and right</b>, but only <b>8px on top and bottom</b>. Then make the white card <b>256px wide</b> and <b>centre it</b> on the page.',
+  start:`<div class="bg-white border rounded-lg p-4">
+  <button class="bg-orange-500 text-white rounded-full">Order now</button>
+</div>`,
+  sol:`<div class="bg-white border rounded-lg p-4 w-64 mx-auto">
+  <button class="bg-orange-500 text-white rounded-full px-6 py-2">Order now</button>
+</div>`,
+  hint:'Padding has x (left + right) and y (top + bottom) versions. To centre a box, give it a width and automatic margin on the left and right.',hint2:'button: px-6 py-2 · div: w-64 mx-auto',
+  checks:h=>{const b=h.cs(h.q('button')),d=h.q('div'),R=h.r(d),vw=h.q('body').getBoundingClientRect(),I=h.inner(h.q('body'));return [[b.paddingLeft==='24px'&&b.paddingRight==='24px','The button needs 24px on the left and right.'],[b.paddingTop==='8px'&&b.paddingBottom==='8px','The button needs 8px on top and bottom.'],[Math.round(R.width)===256,'The card should be 256px wide.'],[Math.abs((R.left-I.left)-(I.right-R.right))<2,'The card is not centred yet.']];}},
+ {id:'k1-strip',grp:'Colours',t:'Offer strip colours',topic:'bg',
+  task:'Give the offer strip a <b>very light green</b> background and <b>dark green</b> text.',
+  start:`<p class="p-3 rounded">Diwali offer: 30% off on all bags</p>`,
+  sol:`<p class="p-3 rounded bg-green-100 text-green-800">Diwali offer: 30% off on all bags</p>`,
+  hint:'Background colours start with bg-, text colours with text-. A small shade number is light (like 100), a big one is dark (like 800).',hint2:'bg-green-100 text-green-800',
+  checks:h=>{const s=h.cs(h.q('p'));return [[h.isGreen(s.backgroundColor)&&h.lum(s.backgroundColor)>200,'The background should be a very light green.'],[h.isGreen(s.color)&&h.lum(s.color)<110,'The text should be dark green.']];}},
+ {id:'k1-warn',grp:'Colours',t:'Out-of-stock warning',topic:'border',
+  task:'Make this look like a warning: a <b>red border</b>, <b>dark red text</b>, and a <b>very light red</b> background.',
+  start:`<div class="p-4 border-2">Out of stock. Back on Monday.</div>`,
+  sol:`<div class="p-4 border-2 border-red-500 text-red-700 bg-red-50">Out of stock. Back on Monday.</div>`,
+  hint:'You need three colour classes: one for the border, one for the text, one for the background.',hint2:'border-red-500 text-red-700 bg-red-50',
+  checks:h=>{const s=h.cs(h.q('div'));return [[h.isRed(s.borderTopColor)&&h.lum(s.borderTopColor)<200,'The border should be red.'],[h.isRed(s.color)&&h.lum(s.color)<120,'The text should be dark red.'],[h.isRed(s.backgroundColor)&&h.lum(s.backgroundColor)>215,'The background should be a very light red.']];}},
+ {id:'k1-head',grp:'Typography',t:'Product heading',topic:'tsize',
+  task:'Make the heading <b>large</b> (at least 30px), <b>bold</b>, and <b>dark gray</b> (not pure black).',
+  start:`<h2 class="">Scientific Calculator</h2>`,
+  sol:`<h2 class="text-3xl font-bold text-gray-800">Scientific Calculator</h2>`,
+  hint:'Three classes: a text size, a font weight, and a gray text colour with a high shade number.',hint2:'text-3xl font-bold text-gray-800',
+  checks:h=>{const s=h.cs(h.q('h2'));return [[h.px(s.fontSize)>=30,'The heading is not large enough yet (at least 30px).'],[+s.fontWeight>=700,'The heading is not bold yet.'],[h.isGray(s.color)&&h.lum(s.color)<130&&h.lum(s.color)>15,'The text should be dark gray, not black.']];}},
+ {id:'k1-label',grp:'Typography',t:'Section label & description',topic:'talign',
+  task:'<b>First line:</b> small text (about 14px), ALL CAPITAL letters, and extra space between the letters.<br><b>Paragraph:</b> centred, with relaxed (extra) line spacing.',
+  start:`<p class="">new arrivals</p>
+<p class="">Fresh stock every Monday. Notebooks, pens, calculators and more, delivered to your hostel before 6 PM.</p>`,
+  sol:`<p class="text-sm uppercase tracking-widest">new arrivals</p>
+<p class="text-center leading-relaxed">Fresh stock every Monday. Notebooks, pens, calculators and more, delivered to your hostel before 6 PM.</p>`,
+  hint:'Look at the text size, text-transform (capitals), letter spacing (tracking) and line height (leading) classes. Centring text is a text- class.',hint2:'first: text-sm uppercase tracking-wide · second: text-center leading-relaxed',
+  checks:h=>{const p=h.qa('p'),a=h.cs(p[0]),b=h.cs(p[1]);return [[h.px(a.fontSize)<=14,'The first line should be small (about 14px).'],[a.textTransform==='uppercase','The first line should be in capital letters (without typing them in capitals).'],[h.px(a.letterSpacing)>0,'Add extra space between the letters of the first line.'],[b.textAlign==='center','The paragraph should be centred.'],[h.px(b.lineHeight)/h.px(b.fontSize)>=1.6,'The paragraph needs relaxed line spacing.']];}},
+ {id:'k1-card',grp:'Borders & shadows',t:'Soft raised card',topic:'shadow',
+  task:'Round the card\'s corners <b>a lot</b> (at least 12px) and give it a <b>shadow</b> so it looks raised off the page.',
+  start:`<div class="bg-white p-6 w-64">
+  <h3 class="font-bold">Steel bottle</h3>
+  <p>₹349</p>
+</div>`,
+  sol:`<div class="bg-white p-6 w-64 rounded-xl shadow-lg">
+  <h3 class="font-bold">Steel bottle</h3>
+  <p>₹349</p>
+</div>`,
+  hint:'One class rounds the corners, one adds the shadow. Bigger size names mean more.',hint2:'rounded-xl shadow-lg',
+  checks:h=>{const s=h.cs(h.q('div'));return [[h.px(s.borderTopLeftRadius)>=12,'Round the corners more (at least 12px).'],[shadowOn(s),'Add a shadow.']];}},
+ {id:'k1-photo',grp:'Borders & shadows',t:'Round profile photo',topic:'imgfit',
+  task:'Make the photo a <b>circle</b>, <b>96px</b> wide and <b>96px</b> tall, with a <b>thick (4px) orange border</b>.',
+  start:`<img src="photo.jpg" alt="Profile photo" class="">`,
+  sol:`<img src="photo.jpg" alt="Profile photo" class="w-24 h-24 rounded-full border-4 border-orange-400 object-cover">`,
+  hint:'Set the same width and height (96 ÷ 4 = ?), round it fully, then add a border width and a border colour.',hint2:'w-24 h-24 rounded-full border-4 border-orange-400',
+  checks:h=>{const s=h.cs(h.q('img'));const rad=s.borderTopLeftRadius||'';return [[s.width==='96px'&&s.height==='96px','The photo should be 96px × 96px.'],[/%/.test(rad)?h.px(rad)>=50:h.px(rad)>=48,'It is not a circle yet.'],[s.borderTopWidth==='4px','The border should be 4px thick.'],[h.isOrange(s.borderTopColor),'The border should be orange.']];}},
+ {id:'k1-hover',grp:'Hover & focus',t:'Link hover',topic:'hover',
+  task:'When the mouse is over the link, its text should turn <b>orange</b> and get an <b>underline</b>. Normally it stays gray with no underline.',
+  start:`<a href="#" class="text-gray-700 no-underline">My orders</a>`,
+  sol:`<a href="#" class="text-gray-700 no-underline hover:text-orange-500 hover:underline">My orders</a>`,
+  hint:'Put the hover: prefix in front of a text colour class and in front of the underline class.',hint2:'hover:text-orange-500 hover:underline',
+  checks:h=>{const a=h.q('a');return [[hasCls(a,/\shover:text-(orange|amber)-\d+\s/),'Add a hover: class that turns the text orange.'],[hasCls(a,/\shover:underline\s/),'Add a hover: class that adds the underline.'],[h.cs(a).textDecorationLine==='none','Without the mouse, the link should have no underline.']];}},
+ {id:'k1-focus',grp:'Hover & focus',t:'Search box focus',topic:'focus',
+  task:'When the user clicks inside the box, the border should turn <b>green</b> and the browser\'s default <b>outline should disappear</b>.',
+  start:`<input class="border-2 border-gray-300 rounded-lg px-3 py-2 w-64" placeholder="Search products">`,
+  sol:`<input class="border-2 border-gray-300 rounded-lg px-3 py-2 w-64 focus:border-green-600 focus:outline-none" placeholder="Search products">`,
+  hint:'The focus: prefix works while the box is clicked. You need one focus: class for the border colour and one to remove the outline.',hint2:'focus:border-green-600 focus:outline-none',
+  checks:h=>{const i=h.q('input');return [[hasCls(i,/\sfocus:border-(green|emerald)-\d+\s/),'Add a focus: class that makes the border green.'],[hasCls(i,/\sfocus:outline-(none|hidden)\s/),'Add a focus: class that removes the outline.']];}},
+ {id:'k1-buy',grp:'Build It 1',t:'"Buy now" button',topic:'how',
+  task:'Build the main button:<ul><li><b>dark green</b> background, <b>white bold</b> text</li><li><b>20px</b> space on the left and right, <b>8px</b> on top and bottom</li><li>round corners (about <b>8px</b>)</li><li>an <b>even darker green</b> when the mouse is over it</li></ul>',
+  start:`<button class="">Buy now</button>`,
+  sol:`<button class="bg-green-700 hover:bg-green-800 text-white font-bold px-5 py-2 rounded-lg">Buy now</button>`,
+  hint:'You need a background colour, a text colour, a font weight, x and y padding, a rounded class, and a hover: background class.',hint2:'bg-green-700 hover:bg-green-800 text-white font-bold px-5 py-2 rounded-lg',
+  checks:h=>{const b=h.q('button'),s=h.cs(b);return [[h.isGreen(s.backgroundColor)&&h.lum(s.backgroundColor)<130,'The background should be dark green.'],[h.isWhite(s.color)&&+s.fontWeight>=700,'The text should be white and bold.'],[s.paddingLeft==='20px'&&s.paddingTop==='8px','Padding: 20px left/right, 8px top/bottom.'],[h.px(s.borderTopLeftRadius)>=6&&h.px(s.borderTopLeftRadius)<=12,'Round the corners (about 8px).'],[hasCls(b,/\shover:bg-(green|emerald)-\d+\s/),'Add a darker green background on hover.']];}},
+ {id:'k1-outline',grp:'Build It 1',t:'Your turn: outline button',topic:'border',
+  task:'Now an <b>outline</b> button for "Save for later":<ul><li><b>no background</b>, a <b>2px dark green border</b>, <b>dark green text</b></li><li>same spacing and corners as the Buy now button</li><li>on hover, fill it with a <b>very light green</b></li></ul>',
+  start:`<button class="">Save for later</button>`,
+  sol:`<button class="border-2 border-green-700 text-green-700 font-bold px-5 py-2 rounded-lg hover:bg-green-50">Save for later</button>`,
+  hint:'Start from your Buy now classes. Remove the background, add a border width and border colour, and change the text colour.',hint2:'border-2 border-green-700 text-green-700 px-5 py-2 rounded-lg hover:bg-green-50',
+  checks:h=>{const b=h.q('button'),s=h.cs(b);return [[h.alpha(s.backgroundColor)<10,'An outline button has no background colour.'],[s.borderTopWidth==='2px'&&h.isGreen(s.borderTopColor),'Add a 2px green border.'],[h.isGreen(s.color)&&h.lum(s.color)<130,'The text should be dark green.'],[s.paddingLeft==='20px'&&s.paddingTop==='8px'&&h.px(s.borderTopLeftRadius)>=6,'Use the same padding and corners as Buy now.'],[hasCls(b,/\shover:bg-(green|emerald)-\d+\s/),'Fill it with light green on hover.']];}},
+ {id:'k1-card2',grp:'Build It 2',t:'Product card',topic:'c-card',
+  task:'<b>Card:</b> at most 320px wide, 16px space inside, white background, rounded corners (12px), and a shadow that gets <b>bigger on hover</b>.<br><b>Image:</b> full card width, exactly <b>160px tall</b>, cropped so it is not stretched, rounded corners.<br><b>Name:</b> bold, with some space above it.<br><b>Old price ₹899:</b> gray with a line through it.',
+  start:`<div class="">
+  <img src="calc.jpg" alt="Scientific calculator" class="">
+  <h3 class="">Scientific calculator</h3>
+  <p class="font-bold">₹650 <span class="">₹899</span></p>
+  <button class="w-full bg-green-700 text-white font-bold py-2 rounded-lg mt-3">Buy now</button>
+</div>`,
+  sol:`<div class="max-w-xs p-4 bg-white rounded-xl shadow-md hover:shadow-xl">
+  <img src="calc.jpg" alt="Scientific calculator" class="w-full h-40 object-cover rounded-lg">
+  <h3 class="mt-3 font-bold">Scientific calculator</h3>
+  <p class="font-bold">₹650 <span class="line-through text-gray-400">₹899</span></p>
+  <button class="w-full bg-green-700 text-white font-bold py-2 rounded-lg mt-3">Buy now</button>
+</div>`,
+  hint:'Card: a max-width, padding, background, rounded and shadow classes, plus a hover: shadow. Image: full width, a height, object-cover. Old price: a line-through class and a gray text colour.',hint2:'div: max-w-xs p-4 bg-white rounded-xl shadow-md hover:shadow-xl · img: w-full h-40 object-cover rounded-lg · h3: mt-3 font-bold · span: line-through text-gray-400',
+  checks:h=>{const c=h.q('div'),s=h.cs(c),im=h.q('img'),is=h.cs(im),hd=h.cs(h.q('h3')),sp=h.cs(h.q('span')),I=h.inner(c);return [[h.r(c).width<=321&&h.px(s.maxWidth)>0&&h.px(s.maxWidth)<=320,'The card should be at most 320px wide (use a max-width class).'],[s.paddingTop==='16px'&&s.paddingLeft==='16px','The card needs 16px of space inside.'],[h.isWhite(s.backgroundColor),'The card needs a white background.'],[h.px(s.borderTopLeftRadius)>=12,'Round the card corners (12px).'],[shadowOn(s),'Give the card a shadow.'],[hasCls(c,/\shover:shadow-\w+\s/),'Make the shadow bigger on hover.'],[Math.abs(h.r(im).width-(I.right-I.left))<2,'The image should be as wide as the card.'],[is.height==='160px'&&is.objectFit==='cover','The image should be 160px tall and cropped (not stretched).'],[h.px(is.borderTopLeftRadius)>0,'Round the image corners.'],[+hd.fontWeight>=700&&h.px(hd.marginTop)>0,'The name should be bold with space above it.'],[/line-through/.test(sp.textDecorationLine)&&h.isGray(sp.color),'The old price should be gray with a line through it.']];}}
+]},
+/* ======================= CLASS 2 ======================= */
+{key:'TW2',name:'Class 2 · Layout & responsive',items:[
+ {id:'k2-row',grp:'Flexbox',t:'Feature row',topic:'flex',
+  task:'Put the three boxes <b>side by side</b> in one row, with <b>16px of space</b> between them.',
+  start:`<div class="">
+  <div class="bg-white border rounded-lg p-4">Same-day delivery</div>
+  <div class="bg-white border rounded-lg p-4">Free returns</div>
+  <div class="bg-white border rounded-lg p-4">Student prices</div>
+</div>`,
+  sol:`<div class="flex gap-4">
+  <div class="bg-white border rounded-lg p-4">Same-day delivery</div>
+  <div class="bg-white border rounded-lg p-4">Free returns</div>
+  <div class="bg-white border rounded-lg p-4">Student prices</div>
+</div>`,
+  hint:'Classes go on the outer (parent) div: one to turn on flexbox, one for the space between.',hint2:'flex gap-4',
+  checks:h=>{const d=h.q('body > div'),k=h.qa('body > div > div');return [[h.flex(d),'Turn on flexbox on the outer div.'],[k.every(x=>Math.abs(h.r(x).top-h.r(k[0]).top)<2),'The boxes should be in one row.'],[h.cs(d).columnGap==='16px','The space between boxes should be 16px.']];}},
+ {id:'k2-empty',grp:'Flexbox',t:'Empty cart message',topic:'items',
+  task:'Stack the message and the link <b>one below the other</b>, and put them in the <b>exact centre</b> of the gray box (up-down and left-right).',
+  start:`<div class="h-56 bg-gray-100 rounded-xl">
+  <p class="font-bold">Your cart is empty</p>
+  <a href="#" class="text-green-700 underline">Continue shopping</a>
+</div>`,
+  sol:`<div class="h-56 bg-gray-100 rounded-xl flex flex-col justify-center items-center">
+  <p class="font-bold">Your cart is empty</p>
+  <a href="#" class="text-green-700 underline">Continue shopping</a>
+</div>`,
+  hint:'Turn on flexbox, change the direction to a column, then use one class for each direction of centring. In a column, they swap jobs.',hint2:'flex flex-col justify-center items-center',
+  checks:h=>{const d=h.q('body > div'),I=h.inner(d),p=h.r(h.q('p')),a=h.r(h.q('a'));const cx=(I.left+I.right)/2,cy=(I.top+I.bottom)/2;return [[h.flex(d),'Turn on flexbox.'],[a.top>=p.bottom-1,'The link should be below the message.'],[Math.abs((p.left+p.right)/2-cx)<3&&Math.abs((a.left+a.right)/2-cx)<3,'Centre them left-right.'],[Math.abs((p.top+a.bottom)/2-cy)<4,'Centre them up-down.']];}},
+ {id:'k2-nav',grp:'Build It 3',t:'Navbar',topic:'c-nav',
+  task:'<ul><li>Bar: <b>almost black</b> background, <b>white</b> text, <b>24px</b> space on the sides and <b>16px</b> on top and bottom</li><li>Logo on the <b>far left</b>, links on the <b>far right</b>, centred up-down</li><li>Logo: <b>24px</b> and <b>bold</b>, with the word "Kart" in <b>orange</b></li><li>Links: in a row, <b>24px apart</b>, each turning <b>orange on hover</b></li></ul>',
+  start:`<nav class="">
+  <a href="#" class="">Campus<span class="">Kart</span></a>
+  <div class="">
+    <a href="#">Shop</a>
+    <a href="#">Orders</a>
+    <a href="#">Cart (0)</a>
+  </div>
+</nav>`,
+  sol:NAV_SOL,
+  hint:'nav: colours, padding, flex and two alignment classes. Logo: size and weight; span: text colour. div: flex and gap. Each link: a hover: text colour.',hint2:'nav: bg-gray-900 text-white px-6 py-4 flex justify-between items-center · logo: text-2xl font-bold · span: text-orange-400 · div: flex gap-6 · each link: hover:text-orange-400',
+  checks:h=>{const n=h.q('nav'),s=h.cs(n),lg=h.q('nav > a'),dv=h.q('nav > div'),I=h.inner(n),ls=h.qa('nav > div > a');return [[h.lum(s.backgroundColor)<60&&h.alpha(s.backgroundColor)>200,'The bar needs an almost black background.'],[h.isWhite(s.color),'The text should be white.'],[s.paddingLeft==='24px'&&s.paddingTop==='16px','Padding: 24px on the sides, 16px top and bottom.'],[h.flex(n)&&Math.abs(h.r(lg).left-I.left)<3&&Math.abs(h.r(dv).right-I.right)<3,'Logo far left, links far right.'],[s.alignItems==='center','Centre the items up-down.'],[h.px(h.cs(lg).fontSize)===24&&+h.cs(lg).fontWeight>=700,'The logo should be 24px and bold.'],[h.isOrange(h.cs(h.q('nav span')).color),'"Kart" should be orange.'],[h.flex(dv)&&h.cs(dv).columnGap==='24px','The links should be in a row, 24px apart.'],[ls.length>=3&&ls.every(a=>hasCls(a,/\shover:text-(orange|amber)-\d+\s/)),'Every link should turn orange on hover.']];}},
+ {id:'k2-deals',grp:'Build It 3',t:'Your turn: Deals link',topic:'border',
+  task:'Your navbar is filled in below. Add a new link <b>"Deals"</b> as the <b>first</b> link (before Shop). Make it stand out: <b>orange background</b>, <b>dark text</b>, a <b>pill shape</b>, and some space inside (at least 8px on the sides).',
+  start:NAV_SOL,
+  sol:NAV_SOL.replace('<a href="#" class="hover:text-orange-400">Shop</a>','<a href="#" class="bg-orange-400 text-gray-900 px-3 py-1 rounded-full">Deals</a>\n    <a href="#" class="hover:text-orange-400">Shop</a>'),
+  hint:'Copy a link line, change its text to Deals, and give it a background colour, a dark text colour, padding and a fully rounded class.',hint2:'<a href="#" class="bg-orange-400 text-gray-900 px-3 py-1 rounded-full">Deals</a>',
+  checks:h=>{const ls=h.qa('nav > div > a'),d=ls[0],s=h.cs(d);return [[ls.length>=4,'There should be 4 links now.'],[/deals/i.test(d?.textContent||''),'Deals should be the first link.'],[h.isOrange(s.backgroundColor),'Give Deals an orange background.'],[h.lum(s.color)<90,'The Deals text should be dark.'],[h.px(s.borderTopLeftRadius)>=100,'Make it a pill shape.'],[h.px(s.paddingLeft)>=8,'Add at least 8px of space on the sides.']];}},
+ {id:'k2-grid',grp:'Grid',t:'Category tiles',topic:'grid',
+  task:'Arrange the six category tiles in <b>3 equal columns</b> with <b>12px</b> of space between them.',
+  start:`<div class="">
+  <div class="bg-green-700 text-white p-6 rounded-lg">Books</div>
+  <div class="bg-green-700 text-white p-6 rounded-lg">Pens</div>
+  <div class="bg-green-700 text-white p-6 rounded-lg">Bags</div>
+  <div class="bg-green-700 text-white p-6 rounded-lg">Lab coats</div>
+  <div class="bg-green-700 text-white p-6 rounded-lg">Calculators</div>
+  <div class="bg-green-700 text-white p-6 rounded-lg">Bottles</div>
+</div>`,
+  sol:`<div class="grid grid-cols-3 gap-3">
+  <div class="bg-green-700 text-white p-6 rounded-lg">Books</div>
+  <div class="bg-green-700 text-white p-6 rounded-lg">Pens</div>
+  <div class="bg-green-700 text-white p-6 rounded-lg">Bags</div>
+  <div class="bg-green-700 text-white p-6 rounded-lg">Lab coats</div>
+  <div class="bg-green-700 text-white p-6 rounded-lg">Calculators</div>
+  <div class="bg-green-700 text-white p-6 rounded-lg">Bottles</div>
+</div>`,
+  hint:'Turn on grid, set the number of columns, and add a gap (12 ÷ 4 = ?).',hint2:'grid grid-cols-3 gap-3',
+  checks:h=>{const g=h.q('body > div'),c=h.cols(g),s=h.cs(g);return [[s.display==='grid','Turn on grid.'],[c.length===3&&Math.max(...c)-Math.min(...c)<2,'There should be 3 equal columns.'],[s.columnGap==='12px'&&s.rowGap==='12px','The space between tiles should be 12px.']];}},
+ {id:'k2-span',grp:'Grid',t:'Featured tile',topic:'span',
+  task:'The grid is ready. Make the first tile, <b>"Diwali specials"</b>, <b>two columns wide</b> and <b>two rows tall</b>.',
+  start:`<div class="grid grid-cols-3 gap-3">
+  <div class="bg-orange-500 text-white font-bold p-6 rounded-lg">Diwali specials</div>
+  <div class="bg-green-700 text-white p-6 rounded-lg">Books</div>
+  <div class="bg-green-700 text-white p-6 rounded-lg">Pens</div>
+  <div class="bg-green-700 text-white p-6 rounded-lg">Bags</div>
+  <div class="bg-green-700 text-white p-6 rounded-lg">Bottles</div>
+</div>`,
+  sol:`<div class="grid grid-cols-3 gap-3">
+  <div class="bg-orange-500 text-white font-bold p-6 rounded-lg col-span-2 row-span-2">Diwali specials</div>
+  <div class="bg-green-700 text-white p-6 rounded-lg">Books</div>
+  <div class="bg-green-700 text-white p-6 rounded-lg">Pens</div>
+  <div class="bg-green-700 text-white p-6 rounded-lg">Bags</div>
+  <div class="bg-green-700 text-white p-6 rounded-lg">Bottles</div>
+</div>`,
+  hint:'The classes go on the orange tile itself: one to span columns, one to span rows.',hint2:'col-span-2 row-span-2',
+  checks:h=>{const t=h.qa('body > div > div');return [[h.r(t[0]).width>h.r(t[1]).width*1.8,'The first tile should be two columns wide.'],[h.r(t[0]).height>h.r(t[1]).height*1.8,'The first tile should be two rows tall.']];}},
+ {id:'k2-grow',grp:'Breakpoints',t:'Heading that grows',topic:'bp',
+  task:'The heading should be <b>24px on phones</b>, <b>36px from 768px</b> (tablets), and <b>48px from 1024px</b> (laptops). Use the Phone / Tablet / Laptop buttons to test.',
+  start:`<h1 class="font-bold">CampusKart</h1>`,
+  sol:`<h1 class="font-bold text-2xl md:text-4xl lg:text-5xl">CampusKart</h1>`,
+  hint:'A class with no prefix is for phones. Add md: and lg: versions for bigger screens.',hint2:'text-2xl md:text-4xl lg:text-5xl',
+  checks:(h,H)=>{const f=x=>x.px(x.cs(x.q('h1')).fontSize);return [[f(H.phone)===24,'On phones the heading should be 24px.'],[f(H.md)===36,'From 768px the heading should be 36px.'],[f(H.lg)===48,'From 1024px the heading should be 48px.']];}},
+ {id:'k2-hide',grp:'Breakpoints',t:'Filters on phone vs tablet',topic:'rhide',
+  task:'<b>On phones:</b> hide the Filters sidebar and show the "Tap here for filters" bar.<br><b>From 768px:</b> show the sidebar and hide the bar.',
+  start:`<div class="flex gap-4">
+  <aside class="w-40 bg-green-50 p-3 rounded">Filters</aside>
+  <main class="flex-1 border rounded p-3">Products</main>
+</div>
+<p class="bg-orange-100 p-2 mt-3 rounded text-sm">Tap here for filters</p>`,
+  sol:`<div class="flex gap-4">
+  <aside class="w-40 bg-green-50 p-3 rounded hidden md:block">Filters</aside>
+  <main class="flex-1 border rounded p-3">Products</main>
+</div>
+<p class="bg-orange-100 p-2 mt-3 rounded text-sm md:hidden">Tap here for filters</p>`,
+  hint:'hidden hides on all screens. md:block shows again from 768px. md:hidden hides only from 768px.',hint2:'aside: hidden md:block · p: md:hidden',
+  checks:(h,H)=>{const d=(x,s)=>x.cs(x.q(s)).display;return [[d(H.phone,'aside')==='none','On phones the sidebar should be hidden.'],[d(H.phone,'p')!=='none','On phones the "Tap here" bar should show.'],[d(H.md,'aside')!=='none','From 768px the sidebar should show.'],[d(H.md,'p')==='none','From 768px the "Tap here" bar should be hidden.']];}},
+ {id:'k2-shop',grp:'Build It 4',t:'Responsive shop grid',topic:'rgrid',
+  task:'Show the products <b>1 per row on phones</b>, <b>2 per row from 640px</b>, and <b>4 per row from 768px</b>. Put <b>24px</b> of space between cards and <b>24px</b> of padding around the whole section.',
+  start:`<section class="">
+${FOUR}
+</section>`,
+  sol:`<section class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 p-6">
+${FOUR}
+</section>`,
+  hint:'grid + a column count for phones, then sm: and md: versions. Then gap and padding (24 ÷ 4 = ?).',hint2:'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 p-6',
+  checks:(h,H)=>{const n=x=>x.cols(x.q('section')).length,s=h.cs(h.q('section'));return [[h.cs(h.q('section')).display==='grid','Turn on grid.'],[n(H.phone)===1,'On phones there should be 1 card per row.'],[n(H.sm)===2,'From 640px there should be 2 per row.'],[n(H.md)===4&&n(H.lg)===4,'From 768px there should be 4 per row.'],[s.columnGap==='24px','The space between cards should be 24px.'],[s.paddingTop==='24px'&&s.paddingLeft==='24px','Add 24px of padding around the section.']];}}
+]},
+/* ======================= CLASS 3 ======================= */
+{key:'TW3',name:'Class 3 · Build & publish',items:[
+ {id:'k3-layout',grp:'Build It 5',t:'Sale banner: layout',topic:'rflex',
+  task:'Step 1, only the <code>&lt;section&gt;</code>:<ul><li><b>dark green</b> background, <b>white</b> text, <b>24px</b> padding on the sides, <b>64px</b> on top and bottom</li><li><b>Phones:</b> text on top, image below it, everything centred</li><li><b>From 768px:</b> text on the left, image on the <b>far right</b>, text left-aligned</li><li><b>32px</b> gap between the text and the image</li></ul>',
+  start:`<section class="">
+  <div>
+    <h1 class="">Exam Season Sale</h1>
+    <p class="">Calculators and stationery up to 40% off</p>
+  </div>
+  <img src="calc.jpg" alt="Calculator" class="">
+</section>`,
+  sol:BAN_SOL,
+  hint:'Flexbox as a column for phones and md: row for bigger screens. items-center centres; md:justify-between pushes the image right. text-center for phones, md:text-left for bigger.',hint2:'flex flex-col md:flex-row items-center md:justify-between text-center md:text-left gap-8 px-6 py-16 bg-green-800 text-white',
+  checks:(h,H)=>{const S=x=>x.q('section'),ss=h.cs(S(h)),P=H.phone,M=H.md;const pI=P.inner(S(P)),mI=M.inner(S(M));const pim=P.r(P.q('img')),pdv=P.r(P.q('section > div')),mim=M.r(M.q('img')),mdv=M.r(M.q('section > div'));return [[h.isGreen(ss.backgroundColor)&&h.lum(ss.backgroundColor)<120,'The background should be dark green.'],[h.isWhite(ss.color),'The text should be white.'],[ss.paddingLeft==='24px'&&ss.paddingTop==='64px','Padding: 24px on the sides, 64px top and bottom.'],[pim.top>=pdv.bottom-1,'On phones the image should be below the text.'],[Math.abs((pim.left+pim.right)/2-(pI.left+pI.right)/2)<3&&P.cs(S(P)).textAlign==='center','On phones everything should be centred.'],[mim.top<mdv.bottom&&Math.abs(mim.right-mI.right)<3&&Math.abs(mdv.left-mI.left)<3,'From 768px: text on the left, image on the far right.'],[M.cs(S(M)).textAlign==='left'||M.cs(S(M)).textAlign==='start','From 768px the text should be left-aligned.'],[M.cs(S(M)).columnGap==='32px'||M.cs(S(M)).rowGap==='32px','The gap should be 32px.']];}},
+ {id:'k3-sizes',grp:'Build It 5',t:'Sale banner: sizes',topic:'bp',
+  task:'Step 2. The layout is done. Now:<ul><li><b>Heading:</b> 36px on phones, <b>60px from 768px</b>, bold</li><li><b>Paragraph:</b> 16px of space above it</li><li><b>Image:</b> 160px wide on phones, <b>256px from 768px</b>, rounded corners</li></ul>',
+  start:BAN_SOL,
+  sol:BAN_SOL.replace('<h1 class="">','<h1 class="text-4xl md:text-6xl font-bold">').replace('<p class="">','<p class="mt-4">').replace('alt="Calculator" class=""','alt="Calculator" class="w-40 md:w-64 rounded-xl"'),
+  hint:'Use md: to change the size on bigger screens. Widths use the 4px scale (160 ÷ 4, 256 ÷ 4).',hint2:'h1: text-4xl md:text-6xl font-bold · p: mt-4 · img: w-40 md:w-64 rounded-xl',
+  checks:(h,H)=>{const P=H.phone,M=H.md;return [[P.px(P.cs(P.q('h1')).fontSize)===36,'On phones the heading should be 36px.'],[M.px(M.cs(M.q('h1')).fontSize)===60,'From 768px the heading should be 60px.'],[+h.cs(h.q('h1')).fontWeight>=700,'The heading should be bold.'],[h.cs(h.q('p')).marginTop==='16px','Add 16px of space above the paragraph.'],[Math.round(P.r(P.q('img')).width)===160,'On phones the image should be 160px wide.'],[Math.round(M.r(M.q('img')).width)===256,'From 768px the image should be 256px wide.'],[h.px(h.cs(h.q('img')).borderTopLeftRadius)>0,'Round the image corners.']];}},
+ {id:'k3-page',grp:'Assemble',t:'Put the page together',topic:'c-nav',
+  task:'Here are the navbar, banner and shop grid together, <b>without classes</b>. Style all three like you did in Build It 3, 4 and 5 (you can copy your own answers). Check it on Phone and Laptop.',
+  start:`<nav class="">
+  <a href="#" class="">Campus<span class="">Kart</span></a>
+  <div class="">
+    <a href="#">Shop</a>
+    <a href="#">Cart (0)</a>
+  </div>
+</nav>
+<section class="">
+  <div>
+    <h1 class="">Exam Season Sale</h1>
+    <p class="">Up to 40% off</p>
+  </div>
+  <img src="calc.jpg" alt="Calculator" class="">
+</section>
+<main class="">
+${FOUR}
+</main>`,
+  sol:`<nav class="bg-gray-900 text-white px-6 py-4 flex justify-between items-center">
+  <a href="#" class="text-2xl font-bold">Campus<span class="text-orange-400">Kart</span></a>
+  <div class="flex gap-6">
+    <a href="#" class="hover:text-orange-400">Shop</a>
+    <a href="#" class="hover:text-orange-400">Cart (0)</a>
+  </div>
+</nav>
+<section class="flex flex-col md:flex-row items-center md:justify-between text-center md:text-left gap-8 px-6 py-16 bg-green-800 text-white">
+  <div>
+    <h1 class="text-4xl md:text-6xl font-bold">Exam Season Sale</h1>
+    <p class="mt-4">Up to 40% off</p>
+  </div>
+  <img src="calc.jpg" alt="Calculator" class="w-40 md:w-64 rounded-xl">
+</section>
+<main class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 p-6">
+${FOUR}
+</main>`,
+  hint:'Open your answers for Build It 3, 4 and 5 and copy the classes element by element.',hint2:'Use the same classes as the Build It 3, 4 and 5 answers (the hints there show them).',
+  checks:(h,H)=>{const P=H.phone,M=H.md;const n=h.q('nav'),ns=h.cs(n);return [[h.lum(ns.backgroundColor)<60&&h.flex(n)&&ns.justifyContent==='space-between','Navbar: dark background, logo left and links right.'],[h.isWhite(ns.color),'Navbar text should be white.'],[P.r(P.q('section img')).top>=P.r(P.q('section > div')).bottom-1&&M.r(M.q('section img')).top<M.r(M.q('section > div')).bottom,'Banner: stacked on phones, side by side from 768px.'],[h.isGreen(h.cs(h.q('section')).backgroundColor),'Banner: green background.'],[P.cols(P.q('main')).length===1&&M.cols(M.q('main')).length===4,'Shop grid: 1 per row on phones, 4 from 768px.']];}}
+]},
+/* ======================= PRO ======================= */
+{key:'TWX',name:'★ Pro Challenges',pro:true,items:[
+ {id:'x-quick',grp:'group-hover',t:'Quick-view product card',topic:'lift',
+  task:'<ul><li>When the mouse is anywhere over the <b>card</b>, the image <b>zooms in to about 110%</b>, smoothly, without spilling out of its frame.</li><li>The <b>Quick view</b> button floats <b>exactly in the centre of the image</b>: white background, dark text, pill shape. It is <b>invisible</b> normally and <b>fades in</b> when the mouse is over the card.</li><li>The long product name is <b>bold</b> and cut to <b>one line</b> ending with "…".</li></ul>',
+  start:`<div class="w-64 bg-white rounded-xl shadow">
+  <div class="">
+    <img src="bag.jpg" alt="School bag" class="w-full h-48 object-cover">
+    <button class="">Quick view</button>
+  </div>
+  <div class="p-3">
+    <h3 class="">Waterproof school bag with laptop sleeve and three pockets</h3>
+    <p class="text-green-700 font-bold">₹799</p>
+  </div>
+</div>`,
+  sol:`<div class="group w-64 bg-white rounded-xl shadow overflow-hidden">
+  <div class="relative overflow-hidden">
+    <img src="bag.jpg" alt="School bag" class="w-full h-48 object-cover transition duration-300 group-hover:scale-110">
+    <button class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white text-gray-900 font-semibold px-4 py-2 rounded-full opacity-0 transition group-hover:opacity-100">Quick view</button>
+  </div>
+  <div class="p-3">
+    <h3 class="font-bold truncate">Waterproof school bag with laptop sleeve and three pockets</h3>
+    <p class="text-green-700 font-bold">₹799</p>
+  </div>
+</div>`,
+  hint:'Mark the card with group so its children can react with group-hover:. The image frame needs relative and overflow-hidden. Centre the button with absolute, top/left 1/2 and a negative translate. One class cuts text to one line with "…".',
+  hint2:'card: group overflow-hidden · frame: relative overflow-hidden · img: transition duration-300 group-hover:scale-110 · button: absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white text-gray-900 px-4 py-2 rounded-full opacity-0 transition group-hover:opacity-100 · h3: font-bold truncate',
+  checks:h=>{const card=h.q('body > div'),fr=h.q('body > div > div'),im=h.q('img'),b=h.q('button'),t=h.q('h3');const F=h.r(fr),B=h.r(b),bs=h.cs(b),ts=h.cs(t);return [
+   [hasCls(card,/\sgroup\s/),'Mark the card as a group so hovering it can affect its children.'],
+   [h.cs(fr).overflow==='hidden'||h.cs(fr).overflowX==='hidden','The zoomed image must not spill out of its frame.'],
+   [hasCls(im,/\sgroup-hover:scale-(105|110|125)\s/),'The image should zoom when the card is hovered (not only the image).'],
+   [String(h.cs(im).transitionDuration).split(',').some(x=>h.px(x)>0),'Make the zoom smooth.'],
+   [bs.position==='absolute'&&Math.abs((B.left+B.right)/2-(F.left+F.right)/2)<3&&Math.abs((B.top+B.bottom)/2-(F.top+F.bottom)/2)<3,'The button should float exactly in the centre of the image.'],
+   [h.isWhite(bs.backgroundColor)&&h.lum(bs.color)<90&&h.px(bs.borderTopLeftRadius)>=100,'Button: white background, dark text, pill shape.'],
+   [+bs.opacity===0&&hasCls(b,/\sgroup-hover:opacity-100\s/),'The button should be invisible and fade in when the card is hovered.'],
+   [+ts.fontWeight>=700&&ts.whiteSpace==='nowrap'&&ts.textOverflow==='ellipsis','The name should be bold, on one line, ending with "…".']];}},
+
+ {id:'x-glass',grp:'Glass effect',t:'Frosted-glass sticky header',topic:'sticky',
+  task:'<ul><li>The header <b>stays at the top</b> while you scroll, and stays <b>above</b> everything else.</li><li>Logo on the left, Cart on the right, centred up-down. <b>16px</b> space on the sides, <b>12px</b> top and bottom.</li><li><b>Frosted glass:</b> a white background that is <b>about 70% see-through</b>, and whatever scrolls under it looks <b>blurred</b>.</li><li>A thin light-gray line along its <b>bottom edge only</b>.</li></ul>Scroll inside your result to test.',
+  start:`<header class="">
+  <span class="font-bold text-lg">CampusKart</span>
+  <a href="#" class="font-semibold">Cart (2)</a>
+</header>
+<div class="space-y-3 p-4">
+  <img src="bag.jpg" alt="Bag" class="w-full h-40 object-cover rounded-lg">
+  <img src="notebook.jpg" alt="Notebook" class="w-full h-40 object-cover rounded-lg">
+  <img src="bottle.jpg" alt="Bottle" class="w-full h-40 object-cover rounded-lg">
+  <img src="coat.jpg" alt="Lab coat" class="w-full h-40 object-cover rounded-lg">
+</div>`,
+  sol:`<header class="sticky top-0 z-50 flex justify-between items-center px-4 py-3 bg-white/70 backdrop-blur border-b border-gray-200">
+  <span class="font-bold text-lg">CampusKart</span>
+  <a href="#" class="font-semibold">Cart (2)</a>
+</header>
+<div class="space-y-3 p-4">
+  <img src="bag.jpg" alt="Bag" class="w-full h-40 object-cover rounded-lg">
+  <img src="notebook.jpg" alt="Notebook" class="w-full h-40 object-cover rounded-lg">
+  <img src="bottle.jpg" alt="Bottle" class="w-full h-40 object-cover rounded-lg">
+  <img src="coat.jpg" alt="Lab coat" class="w-full h-40 object-cover rounded-lg">
+</div>`,
+  hint:'You need sticky + top + a z-index. For see-through colours, add /70 after a colour (bg-white/70). Blur behind an element is a backdrop- class. A border on one side only is border-b.',
+  hint2:'sticky top-0 z-50 flex justify-between items-center px-4 py-3 bg-white/70 backdrop-blur border-b border-gray-200',
+  checks:h=>{const e=h.q('header'),s=h.cs(e),a=h.alpha(s.backgroundColor),I=h.inner(e);return [
+   [s.position==='sticky'&&s.top==='0px','The header should stick to the very top.'],
+   [(+s.zIndex||0)>=10,'Keep the header above the content (z-index).'],
+   [h.flex(e)&&Math.abs(h.r(h.q('header span')).left-I.left)<3&&Math.abs(h.r(h.q('header a')).right-I.right)<3&&s.alignItems==='center','Logo left, Cart right, centred up-down.'],
+   [s.paddingLeft==='16px'&&s.paddingTop==='12px','Padding: 16px sides, 12px top and bottom.'],
+   [h.lum(s.backgroundColor)>200,'The background should be white.'],
+   [a>120&&a<230,'Make the white background about 70% see-through.'],
+   [/blur/.test(s.backdropFilter||s.webkitBackdropFilter||''),'Blur whatever scrolls behind the header.'],
+   [h.px(s.borderBottomWidth)>=1&&h.px(s.borderTopWidth)===0,'Add a thin line on the bottom edge only.']];}},
+
+ {id:'x-price',grp:'Positioning',t:'Pricing plans with a floating badge',topic:'badge',
+  task:'<ul><li><b>Phones:</b> plans stacked. <b>From 768px:</b> 3 equal columns, <b>24px</b> apart, all cards the <b>same height</b>.</li><li>Every plan: white, <b>24px</b> padding, rounded <b>16px</b>, a thin border, centred text.</li><li>The <b>Student</b> plan stands out: a <b>2px green</b> border, and from 768px it is <b>slightly bigger (105%)</b>.</li><li>The <b>Most popular</b> badge sits <b>exactly centred on the top edge</b> of the Student card (half above, half below the line): green, white small text, pill shape, on one line.</li></ul>',
+  start:`<section class="p-6">
+  <div class="">
+    <h3 class="font-bold text-lg">Basic</h3>
+    <p class="text-3xl font-bold my-2">₹0</p>
+    <p class="text-gray-500">5 orders a month</p>
+  </div>
+  <div class="">
+    <span class="">Most popular</span>
+    <h3 class="font-bold text-lg">Student</h3>
+    <p class="text-3xl font-bold my-2">₹99</p>
+    <p class="text-gray-500">Free delivery on every order</p>
+  </div>
+  <div class="">
+    <h3 class="font-bold text-lg">Pro</h3>
+    <p class="text-3xl font-bold my-2">₹199</p>
+    <p class="text-gray-500">Priority delivery and extra discounts</p>
+  </div>
+</section>`,
+  sol:`<section class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+  <div class="bg-white p-6 rounded-2xl border border-gray-200 text-center">
+    <h3 class="font-bold text-lg">Basic</h3>
+    <p class="text-3xl font-bold my-2">₹0</p>
+    <p class="text-gray-500">5 orders a month</p>
+  </div>
+  <div class="relative bg-white p-6 rounded-2xl border-2 border-green-600 text-center md:scale-105">
+    <span class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-green-600 text-white text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">Most popular</span>
+    <h3 class="font-bold text-lg">Student</h3>
+    <p class="text-3xl font-bold my-2">₹99</p>
+    <p class="text-gray-500">Free delivery on every order</p>
+  </div>
+  <div class="bg-white p-6 rounded-2xl border border-gray-200 text-center">
+    <h3 class="font-bold text-lg">Pro</h3>
+    <p class="text-3xl font-bold my-2">₹199</p>
+    <p class="text-gray-500">Priority delivery and extra discounts</p>
+  </div>
+</section>`,
+  hint:'A responsive grid gives equal heights for free. The badge: the Student card is relative; the badge is absolute at top-0 and left-1/2, then moved back by half its own width and height with negative translates. md:scale-105 enlarges from 768px.',
+  hint2:'section: grid grid-cols-1 md:grid-cols-3 gap-6 · cards: bg-white p-6 rounded-2xl border border-gray-200 text-center · Student: relative border-2 border-green-600 md:scale-105 · badge: absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-green-600 text-white text-xs px-3 py-1 rounded-full whitespace-nowrap',
+  checks:(h,H)=>{const P=H.phone,M=H.md;const cards=x=>x.qa('section > div');const mc=cards(M),pc=cards(P);const n=x=>x.cols(x.q('section')).length;const st=mc[1],sS=M.cs(st),bd=M.q('section span'),B=M.r(bd),S=M.r(st),bs=M.cs(bd);return [
+   [n(P)===1&&n(M)===3,'Phones: 1 column. From 768px: 3 columns.'],
+   [M.cs(M.q('section')).columnGap==='24px','The plans should be 24px apart.'],
+   [Math.abs(M.r(mc[0]).height-M.r(mc[2]).height)<1,'All plans should be the same height.'],
+   [mc.every(c=>{const s=M.cs(c);return s.paddingTop==='24px'&&M.px(s.borderTopLeftRadius)===16&&M.px(s.borderTopWidth)>=1&&s.textAlign==='center'&&M.isWhite(s.backgroundColor);}),'Every plan: white, 24px padding, 16px corners, a border, centred text.'],
+   [sS.borderTopWidth==='2px'&&M.isGreen(sS.borderTopColor),'The Student plan needs a 2px green border.'],
+   [S.height>M.r(mc[0]).height*1.03&&Math.abs(P.r(pc[1]).width-P.r(pc[0]).width)<1,'From 768px only, the Student plan should be slightly bigger (105%).'],
+   [bs.position==='absolute'&&Math.abs((B.left+B.right)/2-(S.left+S.right)/2)<3,'The badge should be centred left-right on the Student card.'],
+   [Math.abs((B.top+B.bottom)/2-S.top)<4,'The badge should sit exactly on the top edge (half above, half below).'],
+   [M.isGreen(bs.backgroundColor)&&M.isWhite(bs.color)&&M.px(bs.borderTopLeftRadius)>=100&&M.px(bs.fontSize)<=14&&bs.whiteSpace==='nowrap','Badge: green pill, small white text, on one line.']];}},
+
+ {id:'x-dash',grp:'Custom grid',t:'Admin dashboard, 3 layouts',topic:'grid',
+  task:'<ul><li><b>Phones:</b> everything stacked (header, menu, orders, stats) with <b>16px</b> gaps.</li><li><b>From 768px:</b> header across the full width. Below it, the menu on the left, <b>exactly 200px</b> wide, and Orders taking the rest. Stats go <b>under Orders</b>, in the same right column.</li><li><b>From 1024px:</b> three columns: menu <b>200px</b>, Orders flexible, Stats <b>exactly 260px</b> on the right, all starting at the same height. The header still spans everything.</li></ul>Test with Phone, Tablet and Laptop.',
+  start:`<div class="">
+  <header class="bg-gray-900 text-white p-4 font-bold rounded-lg">Admin · CampusKart</header>
+  <nav class="bg-green-50 p-4 rounded-lg">Menu</nav>
+  <main class="bg-white border p-4 min-h-40 rounded-lg">Orders</main>
+  <aside class="bg-orange-50 p-4 rounded-lg">Today's stats</aside>
+</div>`,
+  sol:`<div class="grid gap-4 md:grid-cols-[200px_1fr] lg:grid-cols-[200px_1fr_260px]">
+  <header class="bg-gray-900 text-white p-4 font-bold rounded-lg md:col-span-2 lg:col-span-3">Admin · CampusKart</header>
+  <nav class="bg-green-50 p-4 rounded-lg md:row-span-2">Menu</nav>
+  <main class="bg-white border p-4 min-h-40 rounded-lg">Orders</main>
+  <aside class="bg-orange-50 p-4 rounded-lg">Today's stats</aside>
+</div>`,
+  hint:'Use grid with exact column sizes written in square brackets, e.g. grid-cols-[200px_1fr] (underscore = space). Make the header span all columns at each size, and let the menu span two rows at 768px so Stats flows under Orders.',
+  hint2:'div: grid gap-4 md:grid-cols-[200px_1fr] lg:grid-cols-[200px_1fr_260px] · header: md:col-span-2 lg:col-span-3 · nav: md:row-span-2',
+  checks:(h,H)=>{const P=H.phone,M=H.md,L=H.lg;const g=(x,s)=>x.r(x.q(s));const W=x=>{const I=x.inner(x.q('body > div'));return I.right-I.left;};
+   const pOrder=['header','nav','main','aside'].map(s=>g(P,s));
+   return [
+   [pOrder.every(r=>Math.abs(r.width-W(P))<1)&&pOrder.every((r,i)=>i===0||r.top>=pOrder[i-1].bottom-1),'Phones: all four blocks stacked, full width.'],
+   [Math.abs(g(P,'nav').top-g(P,'header').bottom-16)<1,'Phones: 16px gaps between blocks.'],
+   [Math.abs(g(M,'header').width-W(M))<1,'From 768px the header should span the full width.'],
+   [Math.round(g(M,'nav').width)===200&&Math.abs(g(M,'main').left-g(M,'nav').right-16)<1,'From 768px: menu 200px on the left, Orders next to it.'],
+   [Math.abs(g(M,'aside').left-g(M,'main').left)<1&&g(M,'aside').top>g(M,'main').bottom,'From 768px: Stats under Orders, in the right column.'],
+   [Math.round(g(L,'nav').width)===200&&Math.round(g(L,'aside').width)===260,'From 1024px: menu 200px and Stats 260px.'],
+   [Math.abs(g(L,'nav').top-g(L,'main').top)<1&&Math.abs(g(L,'aside').top-g(L,'main').top)<1,'From 1024px: menu, Orders and Stats side by side, same top.'],
+   [Math.abs(g(L,'header').width-W(L))<1,'From 1024px the header should still span everything.']];}},
+
+ {id:'x-email',grp:'Form states',t:'Smart email field (no JavaScript)',topic:'focus',
+  task:'<ul><li>Input: <b>full width</b>, <b>2px</b> border, rounded, some padding.</li><li>When the email is <b>not valid</b>: the border is <b>red</b> and the message below appears in <b>small red</b> text.</li><li>When the email <b>is valid</b>: the border is <b>green</b> and the message is <b>hidden</b> (no empty space left).</li><li>Tailwind classes only, no JavaScript. Try typing a correct and a wrong email in your result.</li></ul>',
+  start:`<form class="max-w-sm">
+  <label for="em" class="block font-semibold mb-1">College email</label>
+  <input id="em" type="email" value="aditya.college" class="">
+  <p class="">Please enter a valid email address.</p>
+</form>`,
+  sol:`<form class="max-w-sm">
+  <label for="em" class="block font-semibold mb-1">College email</label>
+  <input id="em" type="email" value="aditya.college" class="peer w-full border-2 rounded-lg px-3 py-2 focus:outline-none valid:border-green-600 invalid:border-red-500">
+  <p class="hidden peer-invalid:block text-sm text-red-600 mt-1">Please enter a valid email address.</p>
+</form>`,
+  hint:'The browser already knows if a type="email" value is valid. Tailwind has valid: and invalid: variants for that. To style the message based on the input before it, mark the input as peer and use peer-invalid: on the message.',
+  hint2:'input: peer w-full border-2 rounded-lg px-3 py-2 valid:border-green-600 invalid:border-red-500 · p: hidden peer-invalid:block text-sm text-red-600 mt-1',
+  checks:h=>{const i=h.q('input'),p=h.q('p'),f=h.q('form');i.value='aditya.college';const bad={b:h.cs(i).borderTopColor,d:h.cs(p).display,c:h.cs(p).color,fs:h.px(h.cs(p).fontSize)};
+   i.value='aditya@college.edu';const good={b:h.cs(i).borderTopColor,d:h.cs(p).display};i.value='aditya.college';const W=h.inner(f).right-h.inner(f).left;
+   return [
+   [Math.abs(h.r(i).width-W)<2&&h.cs(i).borderTopWidth==='2px'&&h.px(h.cs(i).borderTopLeftRadius)>0&&h.px(h.cs(i).paddingLeft)>=8,'Input: full width, 2px border, rounded, padding.'],
+   [/\sstyle=|<script/i.test(' '+f.outerHTML)===false,'Use Tailwind classes only.'],
+   [h.isRed(bad.b),'When the email is wrong, the border should be red.'],
+   [bad.d!=='none'&&h.isRed(bad.c)&&bad.fs<=14,'When the email is wrong, show the message in small red text.'],
+   [h.isGreen(good.b),'When the email is correct, the border should be green.'],
+   [good.d==='none','When the email is correct, hide the message completely.']];}},
+
+ {id:'x-skel',grp:'Animation',t:'Loading skeleton card',topic:'c-card',
+  task:'Build the gray "loading" card shops show before products appear:<ul><li><b>Card:</b> 256px wide, white, 16px padding, rounded 12px, a thin border, and the whole card <b>gently pulses</b> (fades in and out) forever.</li><li><b>Block 1:</b> image placeholder, full width, <b>16:9 shape</b>, light gray, rounded.</li><li><b>Block 2:</b> a line <b>¾</b> of the width, <b>16px</b> tall, light gray, rounded, <b>12px</b> above it.</li><li><b>Block 3:</b> a line <b>half</b> the width, 16px tall, light gray, rounded, <b>8px</b> above it.</li><li><b>Block 4:</b> a button placeholder, full width, <b>40px</b> tall, a slightly darker gray, rounded, <b>16px</b> above it.</li></ul>',
+  start:`<div class="">
+  <div class=""></div>
+  <div class=""></div>
+  <div class=""></div>
+  <div class=""></div>
+</div>`,
+  sol:`<div class="w-64 bg-white p-4 rounded-xl border animate-pulse">
+  <div class="w-full aspect-video bg-gray-200 rounded-lg"></div>
+  <div class="w-3/4 h-4 bg-gray-200 rounded mt-3"></div>
+  <div class="w-1/2 h-4 bg-gray-200 rounded mt-2"></div>
+  <div class="w-full h-10 bg-gray-300 rounded-lg mt-4"></div>
+</div>`,
+  hint:'Tailwind has a ready animation class for pulsing. Shapes: aspect-video is 16:9. Widths can be fractions like w-3/4. Empty divs need a height or an aspect ratio to show.',
+  hint2:'card: w-64 bg-white p-4 rounded-xl border animate-pulse · 1: w-full aspect-video bg-gray-200 rounded-lg · 2: w-3/4 h-4 bg-gray-200 rounded mt-3 · 3: w-1/2 h-4 bg-gray-200 rounded mt-2 · 4: w-full h-10 bg-gray-300 rounded-lg mt-4',
+  checks:h=>{const c=h.q('body > div'),s=h.cs(c),k=h.qa('body > div > div'),I=h.inner(c),W=I.right-I.left,R=k.map(x=>h.r(x)),S=k.map(x=>h.cs(x));const grayBg=x=>h.isGray(x.backgroundColor)&&h.alpha(x.backgroundColor)>200&&h.lum(x.backgroundColor)>150;return [
+   [Math.round(h.r(c).width)===256&&h.isWhite(s.backgroundColor)&&s.paddingTop==='16px'&&h.px(s.borderTopLeftRadius)===12&&h.px(s.borderTopWidth)>=1,'Card: 256px wide, white, 16px padding, 12px corners, thin border.'],
+   [s.animationName&&s.animationName!=='none'&&s.animationIterationCount==='infinite','The whole card should pulse forever.'],
+   [k.length===4,'Keep the four blocks.'],
+   [Math.abs(R[0].width-W)<1&&Math.abs(R[0].height-W*9/16)<2&&grayBg(S[0])&&h.px(S[0].borderTopLeftRadius)>0,'Block 1: full width, 16:9 shape, light gray, rounded.'],
+   [Math.abs(R[1].width-W*0.75)<1.5&&S[1].height==='16px'&&S[1].marginTop==='12px'&&grayBg(S[1])&&h.px(S[1].borderTopLeftRadius)>0,'Block 2: ¾ width, 16px tall, 12px above, light gray, rounded.'],
+   [Math.abs(R[2].width-W*0.5)<1.5&&S[2].height==='16px'&&S[2].marginTop==='8px'&&grayBg(S[2]),'Block 3: half width, 16px tall, 8px above, light gray.'],
+   [Math.abs(R[3].width-W)<1&&S[3].height==='40px'&&S[3].marginTop==='16px'&&grayBg(S[3])&&h.lum(S[3].backgroundColor)<h.lum(S[1].backgroundColor)&&h.px(S[3].borderTopLeftRadius)>0,'Block 4: full width, 40px tall, 16px above, a darker gray, rounded.']];}}
+]}
+];
+
+const allChallenges=()=>PRACTICE.flatMap(s=>s.items);
+
+const PKEY='tailwindlab-practice-v1';
+let PS={name:'',roll:'',solved:{},work:{}};
+try{const v=JSON.parse(localStorage.getItem(PKEY)||'null');if(v)PS=Object.assign(PS,v);else{const t=JSON.parse(localStorage.getItem('tagfinder-practice-v1')||'null');if(t){PS.name=t.name||'';PS.roll=t.roll||'';}}}catch(e){}
+function psSave(){try{localStorage.setItem(PKEY,JSON.stringify(PS));}catch(e){}}
+
+const cv=document.createElement('canvas');cv.width=cv.height=1;const cx=cv.getContext('2d',{willReadFrequently:true});
+function toRGB(c){cx.clearRect(0,0,1,1);cx.fillStyle='rgba(0,0,0,0)';try{cx.fillStyle=c;}catch(e){}cx.fillRect(0,0,1,1);const d=cx.getImageData(0,0,1,1).data;return [d[0],d[1],d[2],d[3]];}
+function mkHelpers(d){
+  const w=d.defaultView;const q=s=>d.querySelector(s),qa=s=>[...d.querySelectorAll(s)];
+  const cs=el=>el&&w?w.getComputedStyle(el):{};
+  const r=el=>el?el.getBoundingClientRect():{left:0,right:0,top:0,bottom:0,width:0,height:0};
+  const px=v=>parseFloat(v)||0;
+  const inner=el=>{const b=r(el),s=cs(el);return {left:b.left+px(s.borderLeftWidth)+px(s.paddingLeft),right:b.right-px(s.borderRightWidth)-px(s.paddingRight),top:b.top+px(s.borderTopWidth)+px(s.paddingTop),bottom:b.bottom-px(s.borderBottomWidth)-px(s.paddingBottom)};};
+  const c=x=>toRGB(x);
+  const hsl=x=>{const [R,G,B,al]=c(x);const r=R/255,g=G/255,b=B/255,mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn;let hh=0;
+    if(d){if(mx===r)hh=((g-b)/d)%6;else if(mx===g)hh=(b-r)/d+2;else hh=(r-g)/d+4;hh*=60;if(hh<0)hh+=360;}
+    return {h:hh,chroma:d*255,al};};
+  const hueIn=(x,lo,hi,minC)=>{const o=hsl(x);return o.al>0&&o.chroma>=(minC||12)&&(lo<=hi?(o.h>=lo&&o.h<=hi):(o.h>=lo||o.h<=hi));};
+  const isBlue=x=>hueIn(x,200,250,30);
+  const isRed=x=>hueIn(x,340,15,8);
+  const isGreen=x=>hueIn(x,85,175,8);
+  const isOrange=x=>hueIn(x,14,50,60);
+  const isWhite=x=>{const [a,g,b,al]=c(x);return al>200&&a>245&&g>245&&b>245;};
+  const isGray=x=>{const [a,g,b,al]=c(x);return al>0&&Math.max(a,g,b)-Math.min(a,g,b)<45&&a+g+b>40&&a+g+b<700;};
+  const alpha=x=>c(x)[3];
+  const lum=x=>{const [a,g,b]=c(x);return (a+g+b)/3;};
+  const flex=el=>/flex/.test(cs(el).display||'');
+  const cols=el=>String(cs(el).gridTemplateColumns||'').trim().split(/\s+/).filter(x=>x&&x!=='none').map(px);
+  return {q,qa,cs,r,px,inner,isBlue,isRed,isGreen,isOrange,isWhite,isGray,lum,flex,cols,alpha};
+}
+function renderAt(html,W){return new Promise(res=>{const f=document.createElement('iframe');f.setAttribute('sandbox','allow-scripts allow-same-origin');f.className='offscreen';f.style.width=W+'px';f.setAttribute('aria-hidden','true');f.tabIndex=-1;
+  let done=false;const fin=()=>{if(done)return;done=true;setTimeout(()=>res(f),350);};f.onload=fin;setTimeout(fin,6000);f.srcdoc=docFor(html);document.body.appendChild(f);});}
+function fnv(s){let h=0x811c9dc5;for(const c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)>>>0;}return h;}
+const normRoll=r=>String(r||'').toUpperCase().replace(/\s+/g,'');
+function makeCode(roll,set,mask){const m=mask.toString(16).toUpperCase().padStart(2,'0');const h=fnv(`${normRoll(roll)}|${set}|${m}|fsd1-tagfinder-2026`).toString(36).toUpperCase().padStart(7,'0').slice(-5);return `${set}-${m}-${h}`;}
+const setMask=s=>s.items.reduce((m,c,i)=>PS.solved[c.id]?m|(1<<i):m,0);
+const solvedCount=s=>s.items.filter(c=>PS.solved[c.id]).length;
+
+function navHTML(set){let out='',g=null;set.items.forEach((c,i)=>{if(c.grp!==g){if(g!==null)out+='</div></div>';g=c.grp;out+=`<div class="chgrp"><span class="chg">${esc(g||'')}</span><div class="chnums">`;}
+  out+=`<button class="chn ${PS.solved[c.id]?'done':''}" data-ch="${i}" aria-current="${i===state.pidx}" aria-label="Challenge ${i+1}${PS.solved[c.id]?', solved':''}">${PS.solved[c.id]?'✓':i+1}</button>`;});return out+(g!==null?'</div></div>':'');}
+function openPractice(fromClick){
+  state.id='practice';try{history.replaceState(null,'','#practice');}catch(e){}
+  const set=PRACTICE.find(s=>s.key===state.pset)||PRACTICE[0];if(state.pidx>=set.items.length)state.pidx=0;
+  const ch=set.items[state.pidx];const work=PS.work[ch.id]??(HS+ch.start);
+  const n=solvedCount(set),tot=set.items.length;
+  const msg=state.pmsg&&state.pmsg.id===ch.id?state.pmsg:(PS.solved[ch.id]?{ok:true,text:'Solved. Move on to the next challenge.'}:null);
+  $('#main').innerHTML=`
+  <div class="head"><div class="eyebrow">Practice</div><h2>Practice &amp; get your completion code</h2>
+    <p class="lead">Add Tailwind classes to make your result match the goal, then press <b>Check my answer</b>. When you finish a set, get your code and submit it to your teacher.</p></div>
+  <section class="card who">
+    <div class="field"><label for="p-name">Your name</label><input id="p-name" value="${esc(PS.name)}" autocomplete="name"></div>
+    <div class="field"><label for="p-roll">Roll number</label><input id="p-roll" value="${esc(PS.roll)}"></div>
+    <p class="hint">Your work is saved in this browser only.</p>
+  </section>
+  <div class="settabs" role="group" aria-label="Practice sets">${PRACTICE.map(s=>`<button class="settab ${s.pro?'pro':''}" data-set="${s.key}" aria-pressed="${s===set}">${esc(s.name)} <span class="cnt ${solvedCount(s)===s.items.length?'full':''}">${solvedCount(s)}/${s.items.length}</span></button>`).join('')}</div>
+  ${set.pro?'<p class="pronote"><b>Optional.</b> Harder challenges for students who want more practice. Not compulsory.</p>':''}
+  <div class="bench">
+    <div class="col">
+      <section class="card">
+        <div class="chnav" role="group" aria-label="Challenges">${navHTML(set)}</div>
+        <div class="eyebrow">${esc(ch.grp||'')}</div>
+        <h3 class="ch-title">${state.pidx+1}. ${esc(ch.t)}</h3>
+        <p class="task">${ch.task}</p>
+        <label class="edl" for="p-editor">Your HTML (only add classes)</label>
+        <textarea class="code" id="p-editor" spellcheck="false">${esc(work)}</textarea>
+        <div class="pbtns"><button class="btn-p" id="p-check">Check my answer</button><button class="btn-s" id="p-hint">Hint</button><button class="btn-s" id="p-reset">Start again</button>${byId(ch.topic)?`<button class="btn-s" data-go="${ch.topic}">Learn: ${esc(byId(ch.topic).t)} →</button>`:''}</div>
+        <div id="p-hinttext" class="hintbox" hidden><p style="margin:0">${esc(ch.hint)}</p><p id="p-hint2" style="margin:8px 0 0" hidden><b>Classes:</b> <code>${esc(ch.hint2||'')}</code></p></div>
+        <div id="p-fb" class="fb ${msg?(msg.ok?'ok':'bad'):''}" aria-live="polite">${msg?(msg.ok?'✓ ':'✗ ')+esc(msg.text):''}</div>
+        ${PS.solved[ch.id]&&state.pidx<tot-1?`<button class="btn-p" id="p-next" style="margin-top:10px">Next challenge →</button>`:''}
+      </section>
+    </div>
+    <div class="col sticky">
+      <div class="browser"><div class="bar"><span class="blabel goal">Goal</span><div class="url">what yours should look like</div>${devBar()}</div>
+        <div class="vp" id="vp-goal"><iframe id="p-goal" sandbox="allow-scripts allow-same-origin" title="Goal"></iframe></div></div>
+      <div class="browser"><div class="bar"><span class="blabel">Your result</span><div class="url">index.html</div></div>
+        <div class="vp" id="vp-res"><iframe id="p-res" sandbox="allow-scripts allow-same-origin" title="Your result"></iframe></div>
+        <p class="devnote">${devNote()}</p></div>
+    </div>
+  </div>
+  <section class="card codecard">
+    <h3 class="step-h">Completion code · ${esc(set.name)}</h3>
+    <div class="pbar" role="img" aria-label="${n} of ${tot} solved"><i style="width:${Math.round(n/tot*100)}%"></i></div>
+    <p class="hint">${n} of ${tot} challenges solved.${n<tot?' You can get a code now; it shows your score. Solve more and get a new code later.':' Well done, the set is complete.'}</p>
+    <button class="btn-p" id="p-code" ${n?'':'disabled'}>Get my code</button>
+    <div id="p-codeout"></div>
+  </section>`;
+  const ed=$('#p-editor');let t;
+  const lay=()=>{layoutFrame($('#p-goal'),$('#vp-goal'),360);layoutFrame($('#p-res'),$('#vp-res'),360);};
+  const goal=$('#p-goal');goal.onload=()=>{hook(goal);setTimeout(lay,150);setTimeout(lay,500);};goal.srcdoc=docFor(ch.sol);
+  const res=$('#p-res');let loaded=false;res.onload=()=>{loaded=true;hook(res);setTimeout(lay,150);setTimeout(lay,500);};res.srcdoc=docFor(work);
+  const upd=()=>{let d;try{d=res.contentDocument;}catch(e){}if(loaded&&d&&d.body){d.body.innerHTML=withAssets(ed.value);setTimeout(lay,80);}else res.srcdoc=docFor(ed.value);};
+  ed.addEventListener('input',()=>{PS.work[ch.id]=ed.value;clearTimeout(t);t=setTimeout(()=>{psSave();upd();},250);});
+  ed.addEventListener('keydown',e=>{if(e.key==='Tab'&&!e.shiftKey){e.preventDefault();ed.setRangeText('  ',ed.selectionStart,ed.selectionEnd,'end');ed.dispatchEvent(new Event('input'));}});
+  bindDevices(lay);
+  $('#p-name').oninput=e=>{PS.name=e.target.value;psSave();};
+  $('#p-roll').oninput=e=>{PS.roll=e.target.value;psSave();};
+  document.querySelectorAll('[data-set]').forEach(b=>b.onclick=()=>{state.pset=b.dataset.set;state.pidx=0;state.pmsg=null;openPractice();});
+  document.querySelectorAll('[data-ch]').forEach(b=>b.onclick=()=>{state.pidx=+b.dataset.ch;state.pmsg=null;openPractice();});
+  document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>open(b.dataset.go,true));
+  $('#p-hint').onclick=()=>{const t=$('#p-hinttext'),t2=$('#p-hint2'),b=$('#p-hint');
+    if(t.hidden){t.hidden=false;t2.hidden=true;b.textContent='Still stuck? Show the classes';}
+    else if(t2.hidden){t2.hidden=false;b.textContent='Hide hint';}
+    else{t.hidden=true;b.textContent='Hint';}};
+  $('#p-reset').onclick=()=>{delete PS.work[ch.id];psSave();ed.value=HS+ch.start;upd();};
+  if($('#p-next'))$('#p-next').onclick=()=>{state.pidx++;state.pmsg=null;openPractice();};
+  $('#p-check').onclick=async()=>{
+    PS.work[ch.id]=ed.value;psSave();const code=ed.value;const fb=$('#p-fb');
+    if(/\sstyle\s*=|<style/i.test(code)){fb.className='fb bad';fb.textContent='✗ Use Tailwind classes only. Remove style="" and <style> from your code.';return;}
+    fb.className='fb wait';fb.textContent='Checking…';$('#p-check').disabled=true;
+    const frames=await Promise.all([renderAt(code,1100),renderAt(code,375),renderAt(code,700),renderAt(code,800)]);
+    let out;try{const H={lg:mkHelpers(frames[0].contentDocument),phone:mkHelpers(frames[1].contentDocument),sm:mkHelpers(frames[2].contentDocument),md:mkHelpers(frames[3].contentDocument)};H.laptop=H.lg;out=ch.checks(H.lg,H);}catch(e){out=[[false,'Something in your code could not be checked. Look for a missing tag or quote.']];}
+    frames.forEach(f=>f.remove());
+    const fail=out.find(x=>!x[0]);
+    if(fail){state.pmsg={id:ch.id,ok:false,text:fail[1]};fb.className='fb bad';fb.textContent='✗ '+fail[1];$('#p-check').disabled=false;}
+    else{PS.solved[ch.id]=true;psSave();state.pmsg={id:ch.id,ok:true,text:'Correct! Well done.'};openPractice();}
+  };
+  $('#p-code').onclick=()=>{
+    const out=$('#p-codeout');
+    if(!PS.name.trim()||!normRoll(PS.roll)){out.innerHTML='<p class="fb bad">Type your name and roll number at the top first.</p>';$('#p-name').focus();return;}
+    const code=makeCode(PS.roll,set.key,setMask(set));
+    out.innerHTML=`<div class="codebox"><span class="codeval" id="codeval">${code}</span><button class="btn-s" id="copy-code">Copy</button></div>
+      <p class="hint">${esc(PS.name)} · ${esc(normRoll(PS.roll))} · ${esc(set.name)} · ${n}/${tot} solved. Submit this code the way your teacher tells you. It only works with your own roll number.</p>`;
+    $('#copy-code').onclick=()=>copy(code,$('#codeval'),'Code copied');
+  };
+  afterOpen(fromClick);
+}
+
+window.addEventListener('resize',()=>{if($('#pv'))layoutFrame($('#pv'),$('#vp'),(byId(state.id)||{}).maxH);if($('#p-goal')){layoutFrame($('#p-goal'),$('#vp-goal'),360);layoutFrame($('#p-res'),$('#vp-res'),360);}});
+const start=(location.hash||'').slice(1);
+renderTopics('');
+open(byId(start)||['practice','cheat'].includes(start)?start:'how',false);
+</script>
+
+<script>
+(function(){
+  const KEY='hide-topics';const app=document.querySelector('.app'),b=document.getElementById('sidetoggle');
+  const set=h=>{app.classList.toggle('noside',h);b.setAttribute('aria-expanded',String(!h));b.querySelector('span').textContent=h?'Show topics':'Hide topics';
+    try{localStorage.setItem(KEY,h?'1':'0');}catch(e){}window.dispatchEvent(new Event('resize'));};
+  let h=false;try{h=localStorage.getItem(KEY)==='1';}catch(e){}
+  set(h);b.addEventListener('click',()=>set(!app.classList.contains('noside')));
+})();
+</script>
+
+</body>
+</html>
